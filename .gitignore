@@ -1,0 +1,17 @@
+# Node dependencies
+node_modules/
+
+# MacOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Rust/Tauri build artifacts
+target/
+src-tauri/target/
+calc-core/target/
+
+# Temporary files
+temp.json
+temp_instructions.json

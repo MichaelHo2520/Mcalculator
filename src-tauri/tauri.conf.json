@@ -1,0 +1,27 @@
+{
+  "productName": "麥克計算機",
+  "version": "1.0.0",
+  "identifier": "com.mcalc.app",
+  "build": {
+    "frontendDist": "../ui"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "title": "麥克計算機",
+        "width": 430,
+        "height": 170,
+        "minWidth": 430,
+        "minHeight": 170,
+        "maxWidth": 430,
+        "maxHeight": 330,
+        "resizable": false,
+        "visible": false
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  }
+}

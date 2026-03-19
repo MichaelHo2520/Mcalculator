@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>麥克計算機 V1.0</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="calculator-window">
+
+
+        <div class="calculator-body">
+            <div class="calc-row">
+                <div class="display-box" id="hex-display-box">
+                    <div class="display-label">HEX</div>
+                    <div class="display-value" id="hex-value">0</div>
+                </div>
+                <div class="right-panel sunken-panel bit-depth-panel">
+                    <label><input type="radio" name="bit-depth" value="64" checked> 64</label>
+                    <label><input type="radio" name="bit-depth" value="32"> 32</label>
+                    <label><input type="radio" name="bit-depth" value="16"> 16</label>
+                </div>
+            </div>
+
+            <div class="calc-row">
+                <div class="display-box" id="dec-display-box">
+                    <div class="display-label">DEC</div>
+                    <div class="display-value" id="dec-value">0</div>
+                </div>
+                <div class="right-panel sunken-panel unit-panel">
+                    <label><input type="radio" name="unit" value="rad" checked> 徑</label>
+                    <label><input type="radio" name="unit" value="deg"> 角</label>
+                </div>
+            </div>
+
+            <div class="calc-row">
+                <div class="input-section sunken-panel">
+                    <div class="input-wrapper">
+                        <input type="text" id="expression-input" placeholder="輸入運算式" spellcheck="false">
+                        <div class="dropdown-arrow">▼</div>
+                    </div>
+                </div>
+                <div class="right-panel keyboard-toggle-panel">
+                    <button id="toggle-keyboard" title="顯示/隱藏鍵盤">
+                        <div class="grid-icon">
+                            <span></span><span></span><span></span>
+                            <span></span><span></span><span></span>
+                            <span></span><span></span><span></span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+
+            <div class="button-panel hidden">
+                <!-- Group 1: Hex & Numbers (5 cols) -->
+                <div class="button-group group-1">
+                    <button class="btn hex" data-val="C">C</button>
+                    <button class="btn hex" data-val="F">F</button>
+                    <button class="btn num" data-val="7">7</button>
+                    <button class="btn num" data-val="8">8</button>
+                    <button class="btn num" data-val="9">9</button>
+
+                    <button class="btn hex" data-val="B">B</button>
+                    <button class="btn hex" data-val="E">E</button>
+                    <button class="btn num" data-val="4">4</button>
+                    <button class="btn num" data-val="5">5</button>
+                    <button class="btn num" data-val="6">6</button>
+
+                    <button class="btn hex" data-val="A">A</button>
+                    <button class="btn hex" data-val="D">D</button>
+                    <button class="btn num" data-val="1">1</button>
+                    <button class="btn num" data-val="2">2</button>
+                    <button class="btn num" data-val="3">3</button>
+
+                    <button class="btn paren" data-val="(">(</button>
+                    <button class="btn paren" data-val=")">)</button>
+                    <button class="btn num zero" data-val="0">0</button>
+                    <button class="btn num dot" data-val=".">.</button>
+                </div>
+
+                <div class="v-divider"></div>
+
+                <!-- Group 2: Operators (2 cols) -->
+                <div class="button-group group-2">
+                    <button class="btn op" data-val="/">/</button>
+                    <button class="btn op" data-val="%">%</button>
+                    <button class="btn op" data-val="*">*</button>
+                    <button class="btn bit" data-val="^">Xor</button>
+                    <button class="btn op" data-val="-">-</button>
+                    <button class="btn bit" data-val="|">Or</button>
+                    <button class="btn op" data-val="+">+</button>
+                    <button class="btn bit" data-val="&">And</button>
+                </div>
+
+                <div class="v-divider"></div>
+
+                <!-- Group 3: Scientific (2 cols) -->
+                <div class="button-group group-3">
+                    <button class="btn sci" data-val="sin(">SIN</button>
+                    <button class="btn sci" data-val="log(">LOG</button>
+                    <button class="btn sci" data-val="cos(">COS</button>
+                    <button class="btn sci" data-val="exp(">EXP</button>
+                    <button class="btn sci" data-val="tan(">TAN</button>
+                    <button class="btn sci" data-val="sqrt(">&radic;</button>
+                    <button class="btn sci" data-val="PI">Pi</button>
+                    <button class="btn sci" data-val="!">n!</button>
+                </div>
+
+                <div class="v-divider"></div>
+
+                <!-- Group 4: Clear All (1 col) -->
+                <div class="button-group group-4">
+                    <button class="btn func entry-clear" data-val="entry-clear">BKS</button>
+                    <button class="btn func all-clear" data-val="clear-all">CLR</button>
+                    <button class="btn num" data-val="0x">0x</button>
+                    <button class="btn func settings-toggle" id="settings-toggle" title="視窗設定">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal-overlay hidden">
+        <div class="modal-content sunken-panel">
+            <h3>視窗尺寸設定</h3>
+            <div class="settings-row" style="margin-bottom: 5px;">
+                <label>介面風格:</label>
+                <button id="theme-toggle-btn" class="btn func" style="padding: 2px 10px; width: auto;">切換深色/淺色 🎨</button>
+            </div>
+            <div class="settings-row">
+                <label>隱藏鍵盤高度:</label>
+                <input type="number" id="collapsed-h-input" value="170">
+            </div>
+            <div class="settings-row">
+                <label>顯示鍵盤高度:</label>
+                <input type="number" id="expanded-h-input" value="330">
+            </div>
+            <div class="modal-actions">
+                <button id="save-settings" class="btn">儲存並套用</button>
+                <button id="reset-settings" class="btn">恢復預設</button>
+                <button id="cancel-settings" class="btn">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
