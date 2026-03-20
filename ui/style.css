@@ -227,18 +227,15 @@ body {
     border: none;
     border-radius: var(--btn-radius);
     box-shadow: var(--btn-shadow);
-    padding: 2px 4px;
+    padding: 2px 6px;
     font-size: 11px;
     font-weight: bold;
     font-family: var(--font-family);
     cursor: pointer;
     outline: none;
-    text-align: center;
+    text-align: left;
 }
 
-.neumorphic-select:focus {
-    box-shadow: var(--sunken-shadow);
-}
 
 .ovf-badge {
     display: none;
@@ -428,7 +425,7 @@ input[type="radio"] {
 .group-1 { grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(4, 1fr); flex: 5; }
 .group-2 { grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(6, 1fr); flex: 2; }
 .group-3 { grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(4, 1fr); flex: 2; }
-.group-4 { grid-template-columns: repeat(1, 1fr); grid-template-rows: repeat(4, 1fr); flex: 1; }
+.group-4 { grid-template-columns: repeat(1, 1fr); grid-template-rows: repeat(4, 1fr); flex: 0 0 42px; }
 
 .btn {
     height: 100%;
@@ -478,6 +475,10 @@ input[type="radio"] {
 
 .btn.paren {
     color: var(--color-paren);
+}
+
+.group-4 .btn {
+    font-size: 13px;
 }
 
 .btn.theme-toggle {
