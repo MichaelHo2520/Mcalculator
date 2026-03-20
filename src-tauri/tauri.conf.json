@@ -17,6 +17,7 @@
         "maxWidth": 430,
         "maxHeight": 330,
         "resizable": false,
+        "maximizable": false,
         "visible": false
       }
     ],
