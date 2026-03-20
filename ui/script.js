@@ -348,7 +348,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <span class="hist-type">${item.cType}</span>
             `;
             div.addEventListener('click', () => {
-                expression = item.result;
+                expression = item.expression;
                 inputField.value = expression;
                 isCalculated = false;
                 hideHistoryPanel();
