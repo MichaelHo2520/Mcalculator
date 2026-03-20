@@ -14,21 +14,30 @@
 
         <div class="calculator-body">
             <div class="calc-row">
-                <div class="display-box" id="hex-display-box">
+                <div class="display-box" id="hex-display-box" style="position: relative;">
                     <div class="display-label">HEX</div>
                     <div class="display-value" id="hex-value">0</div>
+                    <span class="ovf-badge" id="hex-ovf">[OVF]</span>
                 </div>
-                <div class="right-panel sunken-panel bit-depth-panel">
-                    <label><input type="radio" name="bit-depth" value="64" checked> 64</label>
-                    <label><input type="radio" name="bit-depth" value="32"> 32</label>
-                    <label><input type="radio" name="bit-depth" value="16"> 16</label>
+                <div class="right-panel sunken-panel type-select-panel">
+                    <select id="c-type-select" class="neumorphic-select">
+                        <option value="int64" selected>int64</option>
+                        <option value="uint64">uint64</option>
+                        <option value="int32">int32</option>
+                        <option value="uint32">uint32</option>
+                        <option value="int16">int16</option>
+                        <option value="uint16">uint16</option>
+                        <option value="int8">int8</option>
+                        <option value="uint8">uint8</option>
+                    </select>
                 </div>
             </div>
 
             <div class="calc-row">
-                <div class="display-box" id="dec-display-box">
+                <div class="display-box" id="dec-display-box" style="position: relative;">
                     <div class="display-label">DEC</div>
                     <div class="display-value" id="dec-value">0</div>
+                    <span class="ovf-badge" id="dec-ovf">[OVF]</span>
                 </div>
                 <div class="right-panel sunken-panel unit-panel">
                     <label><input type="radio" name="unit" value="rad" checked> 徑</label>
@@ -37,10 +46,16 @@
             </div>
 
             <div class="calc-row">
-                <div class="input-section sunken-panel">
+                <div class="input-section sunken-panel" style="position: relative;">
                     <div class="input-wrapper">
                         <input type="text" id="expression-input" placeholder="輸入運算式" spellcheck="false">
                         <div class="dropdown-arrow">▼</div>
+                    </div>
+                    <!-- 歷史紀錄面板容器 -->
+                    <div id="history-panel" class="history-panel" style="display:none">
+                        <div class="history-list" id="history-list">
+                            <!-- JS 動態填充 .history-item -->
+                        </div>
                     </div>
                 </div>
                 <div class="right-panel keyboard-toggle-panel">
@@ -94,6 +109,9 @@
                     <button class="btn bit" data-val="|">Or</button>
                     <button class="btn op" data-val="+">+</button>
                     <button class="btn bit" data-val="&">And</button>
+                    <button class="btn bit" data-val="<<">≪</button>
+                    <button class="btn bit" data-val=">>">≫</button>
+                    <button class="btn bit" data-val="~" style="grid-column: span 2">NOT</button>
                 </div>
 
                 <div class="v-divider"></div>

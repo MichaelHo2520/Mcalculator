@@ -3,10 +3,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const decValue = document.getElementById('dec-value');
     const inputField = document.getElementById('expression-input');
     const buttons = document.querySelectorAll('.btn');
+    const cTypeSelect = document.getElementById('c-type-select');
+    const hexOvf = document.getElementById('hex-ovf');
+    const decOvf = document.getElementById('dec-ovf');
+    const historyPanel = document.getElementById('history-panel');
+    const historyListContainer = document.getElementById('history-list');
+    const dropdownArrow = document.querySelector('.dropdown-arrow');
 
     let expression = "";
-    let bitDepth = 64;
     let isDegree = false;
+    let isCalculated = false;       // 上次按 = 後設為 true
+    let historyList = [];           // [{expression, result, cType, timestamp}]
+    const MAX_HISTORY = 50;
 
     // Settings Management
     const DEFAULT_SETTINGS = {
@@ -30,12 +38,26 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('calc_settings', JSON.stringify(settings));
     }
 
-    // Radio buttons handlers
-    document.querySelectorAll('input[name="bit-depth"]').forEach(radio => {
-        radio.addEventListener('change', (e) => {
-            bitDepth = parseInt(e.target.value);
-            evaluate(true);
-        });
+    // New Helper: Parse C Type
+    function parseCType(cType) {
+        const isSigned = cType.startsWith('int');
+        const bitDepth = parseInt(cType.replace(/^u?int/, ''));
+        return { bitDepth, isSigned };
+    }
+
+    // New Helper: Insert at Cursor
+    function insertAtCursor(text) {
+        const start = inputField.selectionStart || 0;
+        const end = inputField.selectionEnd || 0;
+        expression = expression.substring(0, start) + text + expression.substring(end);
+        inputField.value = expression;
+        const newPos = start + text.length;
+        inputField.setSelectionRange(newPos, newPos);
+    }
+
+    // Event Listeners
+    cTypeSelect.addEventListener('change', () => {
+        evaluate(true);
     });
 
     document.querySelectorAll('input[name="unit"]').forEach(radio => {
@@ -52,41 +74,65 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    function isOperatorChar(ch) {
+        return ['+', '-', '*', '/', '%', '&', '|', '^'].includes(ch);
+    }
+
     function handleInput(val) {
         if (!val) return;
 
-        const start = inputField.selectionStart || 0;
-        const end = inputField.selectionEnd || 0;
-
         if (val === 'entry-clear') {
+            const start = inputField.selectionStart || 0;
+            const end = inputField.selectionEnd || 0;
             if (start !== end) {
-                // Delete selected range
                 expression = expression.substring(0, start) + expression.substring(end);
                 inputField.value = expression;
                 inputField.setSelectionRange(start, start);
             } else if (start > 0) {
-                // Delete one char before cursor
                 expression = expression.substring(0, start - 1) + expression.substring(start);
                 inputField.value = expression;
                 inputField.setSelectionRange(start - 1, start - 1);
             }
+            isCalculated = false;
         } else if (val === 'clear-all') {
             expression = "";
-            inputField.value = expression;
+            inputField.value = "";
+            isCalculated = false;
         } else if (val === '=') {
-            evaluate();
+            evaluate(false);
+        } else if (/[0-9A-F.]/.test(val) || val === '0x') {
+            if (isCalculated) {
+                expression = "";
+                inputField.value = "";
+                isCalculated = false;
+            }
+            insertAtCursor(val);
+        } else if (val === '(' || val === ')') {
+            if (isCalculated && val === '(') {
+                expression = "";
+                inputField.value = "";
+                isCalculated = false;
+            }
+            insertAtCursor(val);
         } else {
-            // Insert at cursor position
-            expression = expression.substring(0, start) + val + expression.substring(end);
-            inputField.value = expression;
-            inputField.setSelectionRange(start + val.length, start + val.length);
+            // Operator or function
+            if (isCalculated) {
+                isCalculated = false;
+            }
+            // Simple double-operator prevention
+            const cursorPos = inputField.selectionStart || expression.length;
+            if (cursorPos > 0 && val.length === 1 && isOperatorChar(val)) {
+                const prevChar = expression[cursorPos - 1];
+                if (isOperatorChar(prevChar)) {
+                    expression = expression.substring(0, cursorPos - 1) + expression.substring(cursorPos);
+                    inputField.value = expression;
+                    inputField.setSelectionRange(cursorPos - 1, cursorPos - 1);
+                }
+            }
+            insertAtCursor(val);
         }
         
-        // Keep focus on input field
         inputField.focus();
-
-        // Auto evaluate if it's a simple number or if user wants real-time?
-        // Let's stick to manual evaluate or simple real-time for DEC/HEX if it's just numbers
         tryUpdateQuickDisplay();
     }
 
@@ -94,33 +140,39 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('keydown', (e) => {
         const key = e.key;
 
-        // Handle functional keys first
         if (key === 'Enter') {
             e.preventDefault();
-            evaluate();
+            evaluate(false);
             return;
         } else if (key === 'Backspace') {
-            e.preventDefault();
-            expression = expression.slice(0, -1);
-            inputField.value = expression;
-            evaluate(true);
+            // Let the input field handle it if focused, otherwise handle manually
+            if (document.activeElement !== inputField) {
+                e.preventDefault();
+                handleInput('entry-clear');
+            } else {
+                isCalculated = false;
+            }
             return;
         } else if (key === 'Escape') {
             e.preventDefault();
-            expression = "";
-            inputField.value = expression;
-            evaluate(true);
+            handleInput('clear-all');
             return;
         }
 
         // Handle mathematical characters (only single chars)
-        // Include 'a-z' for scientific functions like sin, cos, log, etc.
-        if (key.length === 1 && /[0-9a-zA-Z\+\-\*\/\.\(\)]/.test(key)) {
-            // If focused on input field, let the default input happen and the 'input' event will handle it
+        if (key.length === 1 && /[0-9a-fA-F\+\-\*\/\.\(\)\%\&\|\^]/.test(key)) {
             if (document.activeElement !== inputField) {
-                expression += key; // Keep case as typed for functions
-                inputField.value = expression;
-                evaluate(true);
+                e.preventDefault();
+                handleInput(key.toUpperCase());
+            } else {
+                // If calculated, clear first
+                if (isCalculated && /[0-9a-fA-F.]/.test(key)) {
+                    expression = "";
+                    inputField.value = "";
+                    isCalculated = false;
+                } else if (isCalculated) {
+                    isCalculated = false;
+                }
             }
         }
     });
@@ -171,7 +223,8 @@ document.addEventListener('DOMContentLoaded', () => {
     saveBtn.addEventListener('click', async () => {
         const newSettings = {
             collapsedH: parseFloat(collapsedInput.value) || DEFAULT_SETTINGS.collapsedH,
-            expandedH: parseFloat(expandedInput.value) || DEFAULT_SETTINGS.expandedH
+            expandedH: parseFloat(expandedInput.value) || DEFAULT_SETTINGS.expandedH,
+            isDarkTheme: document.body.classList.contains('theme-dark')
         };
         saveSettings(newSettings);
         settingsModal.classList.add('hidden');
@@ -195,7 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const isDark = document.body.classList.contains('theme-dark');
             const settings = getSettings();
             saveSettings({ ...settings, isDarkTheme: isDark });
-            inputField.focus(); // Keep focus when clicking theme button
+            inputField.focus();
         });
     }
 
@@ -206,26 +259,97 @@ document.addEventListener('DOMContentLoaded', () => {
     const tauri = window.__TAURI__;
     const invoke = tauri && tauri.core ? tauri.core.invoke : (tauri ? tauri.invoke : null);
 
-    // Initialization: Set correct size and then show window (Anti-Flicker)
+    // OVF Helpers
+    function showOvf() {
+        hexOvf.style.display = 'block';
+        decOvf.style.display = 'block';
+    }
+    function hideOvf() {
+        hexOvf.style.display = 'none';
+        decOvf.style.display = 'none';
+    }
+
+    // History Management
+    function loadHistory() {
+        const saved = localStorage.getItem('calc_history');
+        if (saved) {
+            try { historyList = JSON.parse(saved); } catch(e) { historyList = []; }
+        }
+    }
+    function saveHistory() {
+        localStorage.setItem('calc_history', JSON.stringify(historyList));
+    }
+    function addHistory(expr, result, cType) {
+        // Prevent duplicate consecutive entries
+        if (historyList.length > 0 && historyList[0].expression === expr && historyList[0].result === result) return;
+        
+        historyList.unshift({
+            expression: expr,
+            result: result,
+            cType: cType,
+            timestamp: Date.now()
+        });
+        if (historyList.length > MAX_HISTORY) historyList.pop();
+        saveHistory();
+    }
+    function renderHistory() {
+        historyListContainer.innerHTML = '';
+        historyList.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'history-item';
+            div.innerHTML = `
+                <span class="hist-expr">${item.expression}</span>
+                <span class="hist-result">= ${item.result}</span>
+                <span class="hist-type">${item.cType}</span>
+            `;
+            div.addEventListener('click', () => {
+                expression = item.result;
+                inputField.value = expression;
+                isCalculated = false;
+                hideHistoryPanel();
+                evaluate(true);
+            });
+            historyListContainer.appendChild(div);
+        });
+    }
+
+    dropdownArrow.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isVisible = historyPanel.style.display !== 'none';
+        if (isVisible) {
+            hideHistoryPanel();
+        } else {
+            loadHistory();
+            renderHistory();
+            historyPanel.style.display = 'block';
+        }
+    });
+
+    function hideHistoryPanel() {
+        historyPanel.style.display = 'none';
+    }
+
+    document.addEventListener('click', (e) => {
+        if (!historyPanel.contains(e.target) && e.target !== dropdownArrow) {
+            hideHistoryPanel();
+        }
+    });
+
+    // Initialization
     async function init() {
         const settings = getSettings();
         if (settings.isDarkTheme) {
             document.body.classList.add('theme-dark');
         }
+        loadHistory();
 
-        // Try to update size first
         try {
             await updateWindowSize();
-        } catch (e) {
-            console.error("Initial size update failed", e);
-        }
+        } catch (e) {}
 
-        // Always try to show the window even if size update failed
         try {
             await invoke('show_window');
-        } catch (e) {
-            console.error("Failed to show window", e);
-        }
+        } catch (e) {}
     }
     init().catch(console.error);
 
@@ -233,36 +357,41 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!expression) {
             hexValue.textContent = "0";
             decValue.textContent = "0";
+            hideOvf();
             return;
         }
+
+        const { bitDepth, isSigned } = parseCType(cTypeSelect.value);
 
         try {
             const result = await invoke('evaluate', {
                 expression: expression.toString(),
                 bitDepth: bitDepth,
+                isSigned: isSigned,
                 isDegree: isDegree
             });
 
             if (result.error) {
                 decValue.textContent = "無效輸入";
                 hexValue.textContent = "---";
+                hideOvf();
             } else {
                 hexValue.textContent = result.hex;
                 decValue.textContent = result.dec;
+                
+                if (result.overflowed) { showOvf(); } else { hideOvf(); }
+
                 if (!isPreview) {
+                    addHistory(expression, result.dec, cTypeSelect.value);
                     expression = result.dec;
                     inputField.value = expression;
+                    isCalculated = true;
                 }
             }
         } catch (e) {
             decValue.textContent = "無效輸入";
             hexValue.textContent = "---";
+            hideOvf();
         }
-    }
-
-    // obsolete functions removed
-
-    function updateDisplays() {
-        evaluate(true);
     }
 });

@@ -14,9 +14,10 @@ pub struct EvalResult {
     pub hex: String,
     pub dec: String,
     pub error: Option<String>,
+    pub overflowed: bool,
 }
 
-pub fn evaluate(expression: &str, bit_depth: u32, is_degree: bool) -> EvalResult {
+pub fn evaluate(expression: &str, bit_depth: u32, is_signed: bool, is_degree: bool) -> EvalResult {
     match tokenize(expression) {
         Ok(tokens) => {
             let tokens = inject_implicit_multiplication(tokens);
@@ -25,29 +26,36 @@ pub fn evaluate(expression: &str, bit_depth: u32, is_degree: bool) -> EvalResult
                 Ok(ast) => {
                     let mut evaluator = Evaluator::new(is_degree);
                     match evaluator.eval(&ast) {
-                        Ok(val) => EvalResult {
-                            hex: format::to_hex(val, bit_depth),
-                            dec: format::to_dec(val, bit_depth),
-                            error: None,
-                        },
+                        Ok(val) => {
+                            let res = format::truncate_and_format(val, bit_depth, is_signed);
+                            EvalResult {
+                                hex: res.hex,
+                                dec: res.dec,
+                                error: None,
+                                overflowed: res.overflowed,
+                            }
+                        }
                         Err(e) => EvalResult {
-                            hex: String::new(),
-                            dec: String::new(),
+                            hex: "---".to_string(),
+                            dec: "Error".to_string(),
                             error: Some(format!("{:?}", e)),
+                            overflowed: false,
                         }
                     }
                 }
                 Err(e) => EvalResult {
-                    hex: String::new(),
-                    dec: String::new(),
+                    hex: "---".to_string(),
+                    dec: "Error".to_string(),
                     error: Some(format!("{:?}", e)),
+                    overflowed: false,
                 }
             }
         }
         Err(e) => EvalResult {
-            hex: String::new(),
-            dec: String::new(),
+            hex: "---".to_string(),
+            dec: "Error".to_string(),
             error: Some(e),
+            overflowed: false,
         }
     }
 }
@@ -66,6 +74,12 @@ mod tests {
     }
 
     #[test]
+    fn test_tokenizer_shift() {
+        let t = tokenize("1<<8").unwrap();
+        assert_eq!(t[1], Token::ShiftOp("<<".to_string()));
+    }
+
+    #[test]
     fn test_parser() {
         let tokens = tokenize("2+3*4").unwrap();
         let mut p = Parser::new(tokens);
@@ -78,13 +92,48 @@ mod tests {
 
     #[test]
     fn test_evaluator() {
-        let res = evaluate("2+3*4", 64, false);
+        let res = evaluate("2+3*4", 64, true, false);
         assert_eq!(res.dec, "14");
     }
 
     #[test]
-    fn test_format() {
-        assert_eq!(format::to_hex(255.0, 32), "FF");
-        assert_eq!(format::to_dec(255.0, 32), "255");
+    fn test_type_truncation() {
+        // uint8 wrapping
+        assert_eq!(evaluate("0-1", 8, false, false).dec, "255");
+        assert_eq!(evaluate("0-1", 8, false, false).hex, "FF");
+        // int8 2's complement
+        assert_eq!(evaluate("0-1", 8, true, false).dec, "-1");
+        assert_eq!(evaluate("0-1", 8, true, false).hex, "FF");
+    }
+
+    #[test]
+    fn test_overflow_detection() {
+        assert_eq!(evaluate("0-1", 8, false, false).overflowed, true);
+        assert_eq!(evaluate("0-1", 8, true, false).overflowed, false);
+        assert_eq!(evaluate("128", 8, true, false).overflowed, true);
+        assert_eq!(evaluate("256", 8, false, false).overflowed, true);
+        assert_eq!(evaluate("-128", 8, true, false).overflowed, false);
+        assert_eq!(evaluate("-129", 8, true, false).overflowed, true);
+    }
+
+    #[test]
+    fn test_hex_padding() {
+        assert_eq!(evaluate("10", 8, true, false).hex, "0A");
+        assert_eq!(evaluate("10", 16, true, false).hex, "000A");
+        assert_eq!(evaluate("10", 32, true, false).hex, "0000000A");
+        assert_eq!(evaluate("10", 64, true, false).hex, "000000000000000A");
+    }
+
+    #[test]
+    fn test_integer_division() {
+        assert_eq!(evaluate("7/2", 32, true, false).dec, "3");
+    }
+
+    #[test]
+    fn test_bit_ops() {
+        assert_eq!(evaluate("1<<8", 16, false, false).dec, "256");
+        assert_eq!(evaluate("256>>4", 16, false, false).dec, "16");
+        assert_eq!(evaluate("~0", 8, false, false).dec, "255");
+        assert_eq!(evaluate("~0", 8, true, false).dec, "-1");
     }
 }

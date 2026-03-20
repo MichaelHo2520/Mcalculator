@@ -2,11 +2,12 @@
 pub enum BinOp {
     Add, Sub, Mul, Div, Mod,
     BitAnd, BitOr, BitXor,
+    Shl, Shr,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum UnaryOp {
-    Pos, Neg,
+    Pos, Neg, BitNot,
 }
 
 #[derive(Debug, Clone, PartialEq)]

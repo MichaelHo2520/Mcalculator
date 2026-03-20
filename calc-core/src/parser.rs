@@ -55,10 +55,20 @@ impl Parser {
         Ok(node)
     }
     fn parse_bit_and(&mut self) -> Result<Node, ParseError> {
-        let mut node = self.parse_add()?;
+        let mut node = self.parse_shift()?;
         while let Some(Token::BitOp('&')) = self.peek() {
             self.advance();
-            node = Node::BinaryOp(Box::new(node), BinOp::BitAnd, Box::new(self.parse_add()?));
+            node = Node::BinaryOp(Box::new(node), BinOp::BitAnd, Box::new(self.parse_shift()?));
+        }
+        Ok(node)
+    }
+    fn parse_shift(&mut self) -> Result<Node, ParseError> {
+        let mut node = self.parse_add()?;
+        while let Some(Token::ShiftOp(op)) = self.peek() {
+            let op = op.clone();
+            self.advance();
+            let bin_op = if op == "<<" { BinOp::Shl } else { BinOp::Shr };
+            node = Node::BinaryOp(Box::new(node), bin_op, Box::new(self.parse_add()?));
         }
         Ok(node)
     }
@@ -87,12 +97,20 @@ impl Parser {
     }
     fn parse_unary(&mut self) -> Result<Node, ParseError> {
         if let Some(tok) = self.peek() {
-            if let Token::Op('+') = tok {
-                self.advance();
-                return Ok(Node::UnaryOp(UnaryOp::Pos, Box::new(self.parse_unary()?)));
-            } else if let Token::Op('-') = tok {
-                self.advance();
-                return Ok(Node::UnaryOp(UnaryOp::Neg, Box::new(self.parse_unary()?)));
+            match tok {
+                Token::Op('+') => {
+                    self.advance();
+                    return Ok(Node::UnaryOp(UnaryOp::Pos, Box::new(self.parse_unary()?)));
+                }
+                Token::Op('-') => {
+                    self.advance();
+                    return Ok(Node::UnaryOp(UnaryOp::Neg, Box::new(self.parse_unary()?)));
+                }
+                Token::BitNot => {
+                    self.advance();
+                    return Ok(Node::UnaryOp(UnaryOp::BitNot, Box::new(self.parse_unary()?)));
+                }
+                _ => {}
             }
         }
         self.parse_factorial()

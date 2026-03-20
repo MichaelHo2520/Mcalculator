@@ -10,15 +10,17 @@ struct EvaluateResponse {
     hex: String,
     dec: String,
     error: Option<String>,
+    overflowed: bool,
 }
 
 #[tauri::command]
-fn evaluate(expression: String, bit_depth: u32, is_degree: bool) -> EvaluateResponse {
-    let res = calc_core::evaluate(&expression, bit_depth, is_degree);
+fn evaluate(expression: String, bit_depth: u32, is_signed: bool, is_degree: bool) -> EvaluateResponse {
+    let res = calc_core::evaluate(&expression, bit_depth, is_signed, is_degree);
     EvaluateResponse {
         hex: res.hex,
         dec: res.dec,
         error: res.error,
+        overflowed: res.overflowed,
     }
 }
 
