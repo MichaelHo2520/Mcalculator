@@ -11,12 +11,12 @@
       {
         "title": "麥克計算機",
         "width": 430,
-        "height": 170,
+        "height": 165,
         "minWidth": 430,
-        "minHeight": 170,
+        "minHeight": 160,
         "maxWidth": 430,
-        "maxHeight": 330,
-        "resizable": false,
+        "maxHeight": 410,
+        "resizable": true,
         "maximizable": false,
         "center": true,
         "visible": false

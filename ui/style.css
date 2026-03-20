@@ -646,3 +646,146 @@ input[type="radio"] {
 #settings-toggle {
     font-size: 18px;
 }
+
+/* Tabs UI Styles */
+.middle-tabs-row {
+    margin: 4px 0 0 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.middle-tabs-row.hidden {
+    display: none;
+}
+
+.tab-list {
+    display: flex;
+    gap: 16px;
+    margin-left: 8px;
+}
+
+.tab-item {
+    font-size: 11px;
+    font-weight: bold;
+    color: var(--color-hex);
+    padding: 0 4px 4px 4px;
+    cursor: pointer;
+    position: relative;
+    font-family: var(--font-family);
+    transition: color 0.3s;
+}
+
+.tab-item.active {
+    color: var(--display-text);
+}
+
+.tab-item.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--display-label);
+    z-index: 2;
+}
+
+.tab-divider {
+    height: 1px;
+    background-color: rgba(0, 0, 0, 0.05);
+    margin-top: -1px;
+}
+
+body.theme-dark .tab-divider {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Bit Display Panel Styles */
+.bit-panel {
+    margin-top: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex: 1;
+    transition: opacity 0.3s;
+}
+
+.bit-panel.hidden {
+    display: none;
+}
+
+.bit-row {
+    display: flex;
+    gap: 8px;
+    flex: 1;
+}
+
+.bit-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    gap: 3px;
+}
+
+.bit-cells {
+    display: flex;
+    gap: 3px;
+    width: 100%;
+    height: 100%; /* fill the height of bit-group minus the label */
+}
+
+.bit-cell {
+    flex: 1;
+    background-color: var(--btn-bg);
+    box-shadow: var(--btn-shadow);
+    border-radius: var(--btn-radius);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: clamp(14px, 2.8vw, 18px); /* scalable font size slightly smaller than numbers */
+    font-weight: bold;
+    color: var(--color-num);
+    cursor: pointer;
+    border: none;
+    padding: 0;
+}
+
+.bit-cell.active-bit {
+    background-color: var(--display-label);
+    color: #ffffff;
+}
+
+.bit-cell:active {
+    transform: scale(0.95);
+    box-shadow: var(--sunken-shadow);
+}
+
+/* For Bits beyond bitDepth */
+.bit-cell.inactive-bit {
+    opacity: 0.2;
+    pointer-events: none;
+    background-color: var(--btn-bg);
+    color: var(--color-num);
+}
+
+.bit-label {
+    font-size: 9px;
+    color: var(--color-hex);
+    font-family: Arial, sans-serif; /* simple font for small text */
+    margin-bottom: 2px;
+    line-height: 1;
+    width: 25%;
+    text-align: center;
+    align-self: flex-end;
+}
+
+.h-divider {
+    height: 2px;
+    background-color: rgba(0, 0, 0, 0.05);
+    margin: 2px 0;
+}
+
+body.theme-dark .h-divider {
+    background-color: rgba(255, 255, 255, 0.05);
+}

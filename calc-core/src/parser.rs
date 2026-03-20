@@ -12,11 +12,14 @@ pub enum ParseError {
 pub struct Parser {
     tokens: Vec<Token>,
     pos: usize,
+    bit_depth: u32,
+    is_signed: bool,
+    is_float: bool,
 }
 
 impl Parser {
-    pub fn new(tokens: Vec<Token>) -> Self {
-        Parser { tokens, pos: 0 }
+    pub fn new(tokens: Vec<Token>, bit_depth: u32, is_signed: bool, is_float: bool) -> Self {
+        Parser { tokens, pos: 0, bit_depth, is_signed, is_float }
     }
     pub fn parse(&mut self) -> Result<Node, ParseError> {
         if self.tokens.is_empty() { return Ok(Node::Num(0.0)); }
@@ -128,8 +131,21 @@ impl Parser {
         match tok {
             Token::Num(n) => Ok(Node::Num(n)),
             Token::Hex(s) => {
-                let val = i64::from_str_radix(&s, 16).map_err(|_| ParseError::InvalidExpression)? as f64;
-                Ok(Node::Num(val))
+                let uval = u64::from_str_radix(&s, 16).map_err(|_| ParseError::InvalidExpression)?;
+                let fval = if self.is_float {
+                    if self.bit_depth == 32 {
+                        f32::from_bits(uval as u32) as f64
+                    } else {
+                        f64::from_bits(uval)
+                    }
+                } else if self.is_signed {
+                    let shift = 64 - self.bit_depth;
+                    let sval = (uval << shift) as i64 >> shift;
+                    sval as f64
+                } else {
+                    uval as f64
+                };
+                Ok(Node::Num(fval))
             }
             Token::Const(s) if s == "PI" => Ok(Node::Num(core::f64::consts::PI)),
             Token::Fn(name) => {

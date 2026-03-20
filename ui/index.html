@@ -20,6 +20,8 @@
                     <span class="ovf-badge" id="hex-ovf">OVF</span>
                 </div>
                 <select id="c-type-select" class="neumorphic-select side-control" title="資料型別與位元深度 (例如: u32, i16)">
+                    <option value="f64">f64</option>
+                    <option value="f32">f32</option>
                     <option value="int64" selected>i64</option>
                     <option value="uint64">u64</option>
                     <option value="int32">i32</option>
@@ -69,8 +71,15 @@
                 </div>
             </div>
 
+            <div class="middle-tabs-row hidden" id="middle-tabs-row">
+                <div class="tab-list">
+                    <div class="tab-item active" id="tab-keyboard">鍵盤</div>
+                    <div class="tab-item" id="tab-bits">位元</div>
+                </div>
+                <div class="tab-divider"></div>
+            </div>
 
-            <div class="button-panel hidden">
+            <div class="button-panel hidden" id="button-panel">
                 <!-- Group 1: Hex & Numbers (5 cols) -->
                 <div class="button-group group-1">
                     <button class="btn hex" data-val="C">C</button>
@@ -140,6 +149,9 @@
                     </button>
                 </div>
             </div>
+
+            <!-- Bit Display Panel (Generated dynamically via JS) -->
+            <div class="bit-panel hidden" id="bit-panel"></div>
         </div>
     </div>
     <!-- Settings Modal -->
@@ -152,16 +164,19 @@
             </div>
             <div class="settings-row">
                 <label>隱藏鍵盤高度:</label>
-                <input type="number" id="collapsed-h-input" value="170" autocomplete="off">
+                <input type="number" id="collapsed-h-input" value="165" autocomplete="off">
             </div>
             <div class="settings-row">
                 <label>顯示鍵盤高度:</label>
-                <input type="number" id="expanded-h-input" value="330" autocomplete="off">
+                <input type="number" id="expanded-h-input" value="380" autocomplete="off">
             </div>
             <div class="modal-actions">
                 <button id="save-settings" class="btn">儲存並套用</button>
                 <button id="reset-settings" class="btn">恢復預設</button>
                 <button id="cancel-settings" class="btn">取消</button>
+            </div>
+            <div class="settings-version" style="text-align: center; font-size: 10px; color: var(--color-hex); margin-top: 5px;">
+                麥克計算機 V1.0
             </div>
         </div>
     </div>

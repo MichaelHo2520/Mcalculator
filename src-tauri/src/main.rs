@@ -14,8 +14,9 @@ struct EvaluateResponse {
 }
 
 #[tauri::command]
-fn evaluate(expression: String, bit_depth: u32, is_signed: bool, is_degree: bool) -> EvaluateResponse {
-    let res = calc_core::evaluate(&expression, bit_depth, is_signed, is_degree);
+fn evaluate(expression: String, bit_depth: u32, is_signed: bool, is_degree: bool, is_float: Option<bool>) -> EvaluateResponse {
+    let is_float = is_float.unwrap_or(false);
+    let res = calc_core::evaluate(&expression, bit_depth, is_signed, is_degree, is_float);
     EvaluateResponse {
         hex: res.hex,
         dec: res.dec,
