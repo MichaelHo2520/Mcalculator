@@ -20,7 +20,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const DEFAULT_SETTINGS = {
         collapsedH: 170,
         expandedH: 330,
-        isDarkTheme: false
+        isDarkTheme: false,
+        selectedType: 'int64',
+        isDegree: false
     };
 
     function getSettings() {
@@ -57,15 +59,51 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Event Listeners
     cTypeSelect.addEventListener('change', () => {
+        const settings = getSettings();
+        saveSettings({ ...settings, selectedType: cTypeSelect.value });
         evaluate(true);
+        inputField.focus();
     });
 
-    document.querySelectorAll('input[name="unit"]').forEach(radio => {
-        radio.addEventListener('change', (e) => {
-            isDegree = e.target.value === 'deg';
+    const unitToggleBtn = document.getElementById('unit-toggle-btn');
+
+    function updateUnitBtnDisplay() {
+        if (!unitToggleBtn) return;
+        if (isDegree) {
+            unitToggleBtn.innerHTML = '角度<br>(°)';
+            unitToggleBtn.title = '三角函數單位：\n' +
+                '角度 (Degree)\n' +
+                '常見角度表示方式\n' +
+                '例如：sin(90°) = 1\n\n' +
+                '轉換公式：\n' +
+                '弧度 = 角度 × π/180\n' +
+                '角度 = 弧度 × 180/π\n\n' +
+                '點擊切換為弧度模式';
+        } else {
+            unitToggleBtn.innerHTML = '弧度<br>(rad)';
+            unitToggleBtn.title = '三角函數單位：\n' +
+                '弧度 (Radian)\n' +
+                '數學與程式預設單位\n' +
+                '例如：sin(π/2) = 1\n\n' +
+                '轉換公式：\n' +
+                '弧度 = 角度 × π/180\n' +
+                '角度 = 弧度 × 180/π\n\n' +
+                '點擊切換為角度模式';
+        }
+    }
+
+    if (unitToggleBtn) {
+        unitToggleBtn.addEventListener('click', () => {
+            isDegree = !isDegree;
+            updateUnitBtnDisplay();
+            
+            const settings = getSettings();
+            saveSettings({ ...settings, isDegree: isDegree });
+            
             evaluate(true);
+            inputField.focus();
         });
-    });
+    }
 
     buttons.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -187,6 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const toggleBtn = document.getElementById('toggle-keyboard');
     const buttonPanel = document.querySelector('.button-panel');
     let isKeyboardVisible = false;
+    let isHistoryVisible = false;
 
     toggleBtn.addEventListener('click', async () => {
         isKeyboardVisible = !isKeyboardVisible;
@@ -196,11 +235,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function updateWindowSize() {
         const settings = getSettings();
-        const targetH = isKeyboardVisible ? settings.expandedH : settings.collapsedH;
+        // 如果鍵盤顯示 或 歷史紀錄顯示，就用展開高度
+        const shouldExpand = isKeyboardVisible || isHistoryVisible;
+        const targetH = shouldExpand ? settings.expandedH : settings.collapsedH;
         try {
-            await invoke('toggle_keyboard', { visible: isKeyboardVisible, targetLogicalH: targetH });
+            await invoke('toggle_keyboard', { visible: shouldExpand, targetLogicalH: targetH });
         } catch (e) {
-            console.error("Failed to toggle keyboard window size", e);
+            console.error("Failed to update window size", e);
         }
     }
 
@@ -221,7 +262,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     saveBtn.addEventListener('click', async () => {
+        const current = getSettings();
         const newSettings = {
+            ...current,
             collapsedH: parseFloat(collapsedInput.value) || DEFAULT_SETTINGS.collapsedH,
             expandedH: parseFloat(expandedInput.value) || DEFAULT_SETTINGS.expandedH,
             isDarkTheme: document.body.classList.contains('theme-dark')
@@ -229,6 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
         saveSettings(newSettings);
         settingsModal.classList.add('hidden');
         await updateWindowSize();
+        inputField.focus();
     });
 
     resetBtn.addEventListener('click', () => {
@@ -238,6 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     cancelBtn.addEventListener('click', () => {
         settingsModal.classList.add('hidden');
+        inputField.focus();
     });
 
     // Theme toggle
@@ -308,29 +353,46 @@ document.addEventListener('DOMContentLoaded', () => {
                 isCalculated = false;
                 hideHistoryPanel();
                 evaluate(true);
+                inputField.focus();
             });
             historyListContainer.appendChild(div);
         });
     }
 
-    dropdownArrow.addEventListener('click', (e) => {
+    dropdownArrow.addEventListener('click', async (e) => {
         e.stopPropagation();
-        const isVisible = historyPanel.style.display !== 'none';
-        if (isVisible) {
-            hideHistoryPanel();
+        const isCurrentlyVisible = historyPanel.style.display !== 'none';
+        if (isCurrentlyVisible) {
+            await hideHistoryPanel();
         } else {
             loadHistory();
             renderHistory();
             historyPanel.style.display = 'block';
+            isHistoryVisible = true;
+            await updateWindowSize();
         }
     });
 
-    function hideHistoryPanel() {
+    const clearHistoryBtn = document.getElementById('clear-history');
+    if (clearHistoryBtn) {
+        clearHistoryBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            historyList = [];
+            saveHistory();
+            renderHistory();
+        });
+    }
+
+    async function hideHistoryPanel() {
+        if (!isHistoryVisible) return;
         historyPanel.style.display = 'none';
+        isHistoryVisible = false;
+        await updateWindowSize();
+        inputField.focus();
     }
 
     document.addEventListener('click', (e) => {
-        if (!historyPanel.contains(e.target) && e.target !== dropdownArrow) {
+        if (isHistoryVisible && !historyPanel.contains(e.target) && e.target !== dropdownArrow) {
             hideHistoryPanel();
         }
     });
@@ -341,6 +403,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (settings.isDarkTheme) {
             document.body.classList.add('theme-dark');
         }
+        
+        // Restore Type selection
+        if (settings.selectedType) {
+            cTypeSelect.value = settings.selectedType;
+        }
+        
+        // Restore Unit selection
+        isDegree = !!settings.isDegree;
+        updateUnitBtnDisplay();
+
         loadHistory();
 
         try {
@@ -394,4 +466,22 @@ document.addEventListener('DOMContentLoaded', () => {
             hideOvf();
         }
     }
+
+    // Disable right-click context menu
+    document.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+    });
+
+    // Global Click-to-Focus (僅限真正點擊到背景區域時)
+    const refocusHandler = (e) => {
+        if (e.target === e.currentTarget && e.target !== inputField) {
+            setTimeout(() => inputField.focus(), 10);
+        }
+    };
+
+    // 只有點擊到這些容器本身（不包含子元素）才回焦
+    ['calculator-body', 'calculator-container', 'display-section', 'input-section', 'input-wrapper'].forEach(cls => {
+        const el = document.querySelector('.' + cls);
+        if (el) el.addEventListener('mousedown', refocusHandler);
+    });
 });

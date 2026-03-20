@@ -206,15 +206,11 @@ body {
     color: var(--color-num);
 }
 
-.type-select-panel,
-.unit-panel {
-    padding: 2px 3px;
-}
-
-.type-select-panel {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.side-control {
+    flex: 0 0 10%;
+    min-width: 42px;
+    text-align: center;
+    text-align-last: center;
 }
 
 .neumorphic-select {
