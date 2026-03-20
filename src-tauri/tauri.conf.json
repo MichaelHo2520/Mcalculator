@@ -18,6 +18,7 @@
         "maxHeight": 330,
         "resizable": false,
         "maximizable": false,
+        "center": true,
         "visible": false
       }
     ],
