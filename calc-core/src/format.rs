@@ -22,52 +22,60 @@ pub fn truncate_and_format(val: f64, bit_depth: u32, is_signed: bool) -> FormatR
         };
     }
 
-    // 2. 整數截斷
-    let raw = val.trunc() as i64;
+    let trunc_val = val.trunc();
 
-    // 3. 位元遮罩截斷
-    let mask = get_mask(bit_depth);
-    let truncated = (raw as u64) & mask;
-
-    // 4. 溢位偵測（值域範圍比對法）
-    let overflowed = if is_signed {
-        if bit_depth < 64 {
-            let min = -(1i64 << (bit_depth - 1));
-            let max = (1i64 << (bit_depth - 1)) - 1;
-            raw < min || raw > max
+    // 2. 決定上下界 (f64)
+    let min_val: f64;
+    let max_val: f64;
+    if is_signed {
+        if bit_depth >= 64 {
+            min_val = -9223372036854775808.0; // i64::MIN
+            max_val = 9223372036854775808.0;  // i64::MAX as f64 (2^63)
         } else {
-            // bit_depth == 64, i64 不會溢出 i64
-            false
+            min_val = -(1i64 << (bit_depth - 1)) as f64;
+            max_val = ((1i64 << (bit_depth - 1)) - 1) as f64;
         }
     } else {
-        if bit_depth < 64 {
-            raw < 0 || (raw as u64) > mask
+        if bit_depth >= 64 {
+            min_val = 0.0;
+            max_val = 18446744073709551616.0; // u64::MAX as f64 (2^64)
         } else {
-            // bit_depth == 64, 無法直接比 > mask (u64::MAX)
-            // 負數在 unsigned 語義下算是溢出
-            raw < 0
+            min_val = 0.0;
+            max_val = ((1u64 << bit_depth) - 1) as f64;
         }
+    }
+
+    // 3. 溢位偵測
+    let overflowed = if is_signed && bit_depth >= 64 {
+        trunc_val < min_val || trunc_val >= max_val
+    } else if !is_signed && bit_depth >= 64 {
+        trunc_val < min_val || trunc_val >= max_val
+    } else {
+        trunc_val < min_val || trunc_val > max_val
     };
 
-    // 5. HEX 格式化（嚴格補零）
-    let hex_width = (bit_depth / 4) as usize;
-    let hex = format!("{:0>width$X}", truncated, width = hex_width);
-
-    // 6. DEC 格式化
-    let dec = if is_signed {
-        if bit_depth < 64 {
-            let sign_bit = 1u64 << (bit_depth - 1);
-            if truncated & sign_bit != 0 {
-                let signed_val = (truncated | !mask) as i64;
-                format!("{}", signed_val)
-            } else {
-                format!("{}", truncated)
-            }
-        } else {
-            format!("{}", truncated as i64)
-        }
+    // 4. DEC 格式化 (若是科學記號或大於1e15，直接使用科學記號)
+    let dec = if trunc_val.abs() >= 1e15 {
+        format!("{:e}", trunc_val)
     } else {
-        format!("{}", truncated)
+        format!("{}", trunc_val)
+    };
+
+    // 5. HEX 格式化
+    let hex = if overflowed {
+        "溢位".to_string()
+    } else {
+        let hex_width = (bit_depth / 4) as usize;
+        let mask = get_mask(bit_depth);
+        
+        let raw_hex = if is_signed {
+            (trunc_val as i64) as u64
+        } else {
+            trunc_val as u64
+        };
+        
+        let truncated_hex = raw_hex & mask;
+        format!("{:0>width$X}", truncated_hex, width = hex_width)
     };
 
     FormatResult {

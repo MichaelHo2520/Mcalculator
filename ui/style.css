@@ -42,6 +42,9 @@
     --color-bit: #ff6b6b;
     --color-paren: #ff9f43;
     --color-theme: #4a6572;
+    --input-label-color: #5d826a;
+    --input-bg-distinct: #d0ded0;
+    --input-border-distinct: 1px solid #aebfae;
 
     --font-family: 'Quicksand', 'Inter', 'Segoe UI', sans-serif;
 }
@@ -89,6 +92,9 @@ body.theme-dark {
     --color-bit: #ff5252;
     --color-paren: #ffd740;
     --color-theme: #e0e0e0;
+    --input-label-color: #6a9c78;
+    --input-bg-distinct: #1d251d;
+    --input-border-distinct: 1px solid #324232;
 
     --font-family: 'Roboto', 'Segoe UI', Courier, monospace;
 }
@@ -159,20 +165,24 @@ body {
     border: var(--display-border);
     border-radius: var(--display-radius);
     box-shadow: var(--display-shadow);
-    padding: 5px 9px;
+    padding: 16px 8px 4px 8px;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    align-items: flex-end;
+    justify-content: flex-end;
     overflow: hidden;
     height: 44px;
+    position: relative;
 }
 
 .display-label {
+    position: absolute;
+    top: 4px;
+    left: 8px;
     color: var(--display-label);
-    font-size: 16px;
+    font-size: 10px;
     font-weight: bold;
     font-family: Arial, Helvetica, sans-serif;
-    line-height: 1.2;
+    line-height: 1;
 }
 
 .display-value {
@@ -181,20 +191,30 @@ body {
     font-weight: bold;
     text-align: right;
     font-family: 'Courier New', Courier, monospace;
-    flex: 1;
-    line-height: 1.2;
-    margin-left: 5px;
+    flex: unset;
+    line-height: 1;
+    margin: 0;
 }
 
 .input-section {
     flex: 1;
     background-color: var(--input-bg);
-    padding: 1px;
+    padding: 16px 8px 4px 8px;
     display: flex;
-    align-items: stretch;
+    align-items: flex-end;
     border-radius: var(--btn-radius);
     box-shadow: var(--display-shadow);
     height: 44px;
+    position: relative;
+}
+
+.input-section.distinct-input {
+    background-color: var(--input-bg-distinct);
+    border: var(--input-border-distinct);
+}
+
+.input-section.distinct-input .display-label {
+    color: var(--input-label-color);
 }
 
 .right-panel {
@@ -237,15 +257,18 @@ body {
 .ovf-badge {
     display: none;
     position: absolute;
-    top: 2px;
-    right: 4px;
-    font-size: 8px;
+    top: 4px;
+    right: 8px;
+    font-size: 9px;
     font-weight: bold;
-    color: var(--color-op);
-    opacity: 0.8;
-    font-family: monospace;
-    letter-spacing: 0.5px;
+    color: #ffffff;
+    background-color: #c0392b;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-family: Arial, sans-serif;
+    letter-spacing: normal;
     animation: ovf-pulse 1.5s ease-in-out infinite;
+    z-index: 10;
 }
 
 @keyframes ovf-pulse {
@@ -394,34 +417,44 @@ input[type="radio"] {
 
 .input-wrapper {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     width: 100%;
-    height: 100%;
 }
 
 #expression-input {
     flex: 1;
     border: none;
-    font-size: 15px;
-    padding: 6px 4px;
+    font-size: 19px;
+    padding: 0 0 0 46px; /* Added 46px left padding to prevent overlap with INPUT label and arrow */
+    margin: 0;
+    line-height: 1;
     background: transparent;
     color: var(--input-color);
     font-weight: bold;
     outline: none;
+    text-align: right;
+    font-family: 'Courier New', Courier, monospace;
+    box-sizing: border-box;
 }
 
 .dropdown-arrow {
-    width: 16px;
-    height: 100%;
-    background-color: var(--btn-bg);
+    position: absolute;
+    bottom: 5px;
+    left: 6px;
+    width: auto;
+    height: auto;
+    background: transparent;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 9px;
+    font-size: 10px;
     cursor: pointer;
-    color: var(--color-num);
-    border-radius: 0 var(--btn-radius) var(--btn-radius) 0;
+    color: var(--input-label-color);
     border: none;
+    padding: 2px;
+}
+.dropdown-arrow:hover {
+    color: var(--display-text);
 }
 
 .button-panel {

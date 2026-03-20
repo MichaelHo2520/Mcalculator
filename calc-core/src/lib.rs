@@ -98,9 +98,9 @@ mod tests {
 
     #[test]
     fn test_type_truncation() {
-        // uint8 wrapping
-        assert_eq!(evaluate("0-1", 8, false, false).dec, "255");
-        assert_eq!(evaluate("0-1", 8, false, false).hex, "FF");
+        // uint8 strict overflow 0-1
+        assert_eq!(evaluate("0-1", 8, false, false).dec, "-1");
+        assert_eq!(evaluate("0-1", 8, false, false).hex, "溢位");
         // int8 2's complement
         assert_eq!(evaluate("0-1", 8, true, false).dec, "-1");
         assert_eq!(evaluate("0-1", 8, true, false).hex, "FF");
@@ -131,9 +131,14 @@ mod tests {
 
     #[test]
     fn test_bit_ops() {
+        // 1<<8 in u16: 256
         assert_eq!(evaluate("1<<8", 16, false, false).dec, "256");
         assert_eq!(evaluate("256>>4", 16, false, false).dec, "16");
-        assert_eq!(evaluate("~0", 8, false, false).dec, "255");
+        // ~0 in u8: is -1, overflows u8 unsigned, returns -1, "溢位"
+        assert_eq!(evaluate("~0", 8, false, false).dec, "-1");
+        assert_eq!(evaluate("~0", 8, false, false).hex, "溢位");
+        // ~0 in i8: is -1, no overflow, returns "-1", "FF"
         assert_eq!(evaluate("~0", 8, true, false).dec, "-1");
+        assert_eq!(evaluate("~0", 8, true, false).hex, "FF");
     }
 }

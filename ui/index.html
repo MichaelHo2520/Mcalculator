@@ -17,7 +17,7 @@
                 <div class="display-box" id="hex-display-box" style="position: relative;">
                     <div class="display-label">HEX</div>
                     <div class="display-value" id="hex-value">0</div>
-                    <span class="ovf-badge" id="hex-ovf">[OVF]</span>
+                    <span class="ovf-badge" id="hex-ovf">OVF</span>
                 </div>
                 <select id="c-type-select" class="neumorphic-select side-control" title="資料型別與位元深度 (例如: u32, i16)">
                     <option value="int64" selected>i64</option>
@@ -35,16 +35,17 @@
                 <div class="display-box" id="dec-display-box" style="position: relative;">
                     <div class="display-label">DEC</div>
                     <div class="display-value" id="dec-value">0</div>
-                    <span class="ovf-badge" id="dec-ovf">[OVF]</span>
+                    <span class="ovf-badge" id="dec-ovf">OVF</span>
                 </div>
                 <button id="unit-toggle-btn" class="neumorphic-select side-control" title="三角函數單位：&#10;弧度 (Radian)&#10;數學與程式預設單位&#10;例如：sin(π/2) = 1&#10;&#10;轉換公式：&#10;弧度 = 角度 × π/180&#10;角度 = 弧度 × 180/π&#10;&#10;點擊切換為角度模式">弧度<br>(rad)</button>
             </div>
 
             <div class="calc-row">
-                <div class="input-section sunken-panel" style="position: relative;">
+                <div class="input-section sunken-panel distinct-input" style="position: relative;">
+                    <div class="display-label">INPUT</div>
+                    <div class="dropdown-arrow" title="歷史紀錄">▼</div>
                     <div class="input-wrapper">
                         <input type="text" id="expression-input" placeholder="輸入運算式" spellcheck="false" autocomplete="off">
-                        <div class="dropdown-arrow">▼</div>
                     </div>
                     <!-- 歷史紀錄面板容器 -->
                     <div id="history-panel" class="history-panel" style="display:none">
