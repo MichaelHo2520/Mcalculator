@@ -120,6 +120,61 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Op mode switching (arithmetic ↔ bit)
+    const opBtns = [0,1,2,3,4,5,6].map(i => document.getElementById('op' + i));
+    const switchOpBtn = document.getElementById('switch-op-mode');
+    let opMode = 'arithmetic';
+
+    const opModes = {
+        arithmetic: [
+            { text: '/', val: '/', cls: 'op' },
+            { text: '%', val: '%', cls: 'op' },
+            { text: '*', val: '*', cls: 'op' },
+            { text: '',  val: null, cls: 'op-blank' },
+            { text: '-', val: '-', cls: 'op' },
+            { text: '',  val: null, cls: 'op-blank' },
+            { text: '+', val: '+', cls: 'op' },
+        ],
+        bit: [
+            { text: '≪', val: '<<', cls: 'bit' },
+            { text: '≫', val: '>>', cls: 'bit' },
+            { text: 'And', val: '&',  cls: 'bit' },
+            { text: 'Or',  val: '|',  cls: 'bit' },
+            { text: 'Xor', val: '^',  cls: 'bit' },
+            { text: 'NOT', val: '~',  cls: 'bit' },
+            { text: '',    val: null, cls: 'op-blank' },
+        ]
+    };
+
+    function applyOpMode(mode) {
+        const cfg = opModes[mode];
+        opBtns.forEach((btn, i) => {
+            if (!btn) return;
+            const c = cfg[i];
+            btn.textContent = c.text;
+            btn.classList.remove('op', 'bit', 'op-blank');
+            btn.classList.add(c.cls);
+            if (c.val) {
+                btn.setAttribute('data-val', c.val);
+                btn.disabled = false;
+            } else {
+                btn.removeAttribute('data-val');
+                btn.disabled = true;
+            }
+        });
+        if (switchOpBtn) {
+            switchOpBtn.title = mode === 'arithmetic' ? '切換至位元模式' : '切換至算術模式';
+        }
+        opMode = mode;
+    }
+
+    if (switchOpBtn) {
+        switchOpBtn.addEventListener('click', () => {
+            applyOpMode(opMode === 'arithmetic' ? 'bit' : 'arithmetic');
+            inputField.focus();
+        });
+    }
+
     function isOperatorChar(ch) {
         return ['+', '-', '*', '/', '%', '&', '|', '^'].includes(ch);
     }
@@ -153,6 +208,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 isCalculated = false;
             }
             insertAtCursor(val);
+        } else if (val === 'smart-paren') {
+            const start = inputField.selectionStart || 0;
+            const end = inputField.selectionEnd || 0;
+            if (start !== end) {
+                // Wrap selection in parens
+                const selected = expression.substring(start, end);
+                expression = expression.substring(0, start) + '(' + selected + ')' + expression.substring(end);
+                inputField.value = expression;
+                inputField.setSelectionRange(start + 1, end + 1);
+            } else {
+                const before = expression.substring(0, start);
+                const openCount = (before.match(/\(/g) || []).length - (before.match(/\)/g) || []).length;
+                if (openCount <= 0) {
+                    insertAtCursor('(');
+                } else {
+                    const prevChar = before.replace(/\s+$/, '').slice(-1);
+                    if (/[0-9a-fA-F.)!IE]/.test(prevChar)) {
+                        insertAtCursor(')');
+                    } else {
+                        insertAtCursor('(');
+                    }
+                }
+            }
+            isCalculated = false;
         } else if (val === '(' || val === ')') {
             if (isCalculated && val === '(') {
                 expression = "";
