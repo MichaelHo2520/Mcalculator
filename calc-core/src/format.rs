@@ -72,11 +72,16 @@ pub fn truncate_and_format(val: f64, bit_depth: u32, is_signed: bool, is_float: 
         trunc_val < min_val || trunc_val > max_val
     };
 
-    // 4. DEC 格式化 (若是科學記號或大於1e15，直接使用科學記號)
-    let dec = if trunc_val.abs() >= 1e15 {
-        format!("{:e}", trunc_val)
+    // 4. DEC 格式化 (f32 模式先過 f32 精度損失；超大或超小數使用科學記號)
+    let display_val = if is_float && bit_depth == 32 {
+        (trunc_val as f32) as f64
     } else {
-        format!("{}", trunc_val)
+        trunc_val
+    };
+    let dec = if display_val.abs() >= 1e15 || (display_val != 0.0 && display_val.abs() < 1e-6) {
+        format!("{:e}", display_val)
+    } else {
+        format!("{}", display_val)
     };
 
     // 5. HEX 格式化

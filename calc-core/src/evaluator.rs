@@ -1,5 +1,9 @@
 use crate::ast::{Node, BinOp, UnaryOp};
 
+fn round_near_zero(v: f64) -> f64 {
+    if v.abs() < 1e-10 { 0.0 } else { v }
+}
+
 #[derive(Debug)]
 pub enum EvalError {
     DivisionByZero,
@@ -43,9 +47,9 @@ impl Evaluator {
                     v = v.to_radians();
                 }
                 match name.as_str() {
-                    "SIN" => Ok(v.sin()),
-                    "COS" => Ok(v.cos()),
-                    "TAN" => Ok(v.tan()),
+                    "SIN" => Ok(round_near_zero(v.sin())),
+                    "COS" => Ok(round_near_zero(v.cos())),
+                    "TAN" => Ok(round_near_zero(v.tan())),
                     "LOG" => Ok(v.log10()),
                     "EXP" => Ok(v.exp()),
                     "SQRT" => Ok(v.sqrt()),
