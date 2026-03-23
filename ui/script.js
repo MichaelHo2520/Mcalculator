@@ -302,6 +302,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Capture keyboard input
     document.addEventListener('keydown', (e) => {
+        // Skip when typing in settings modal inputs
+        if (!settingsModal.classList.contains('hidden') && e.target.closest('.modal-content')) return;
+
         const key = e.key;
 
         if (key === 'Enter') {

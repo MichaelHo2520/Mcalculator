@@ -5,6 +5,38 @@ pub struct FormatResult {
     pub truncated: bool,
 }
 
+/// 以 N 位有效數字格式化浮點數，移除尾端多餘的零
+fn format_significant(val: f64, digits: usize) -> String {
+    if val == 0.0 {
+        return "0.0".to_string();
+    }
+    // 科學記號門檻
+    if val.abs() >= 1e15 || val.abs() < 1e-6 {
+        // 有效位數 = digits-1 (科學記號小數部分)
+        let s = format!("{:.prec$e}", val, prec = digits.saturating_sub(1));
+        return s;
+    }
+    // 計算整數部分佔多少位
+    let int_digits = if val.abs() >= 1.0 {
+        (val.abs().log10().floor() as usize) + 1
+    } else {
+        0
+    };
+    let decimal_places = if digits > int_digits { digits - int_digits } else { 0 };
+    let s = format!("{:.prec$}", val, prec = decimal_places);
+    // 移除尾端零 (保留至少一位小數點後的 0 以表示浮點)
+    if s.contains('.') {
+        let trimmed = s.trim_end_matches('0');
+        if trimmed.ends_with('.') {
+            trimmed.to_string() + "0"
+        } else {
+            trimmed.to_string()
+        }
+    } else {
+        s
+    }
+}
+
 pub fn get_mask(bit_depth: u32) -> u64 {
     if bit_depth >= 64 {
         u64::MAX
@@ -76,16 +108,17 @@ pub fn truncate_and_format(val: f64, bit_depth: u32, is_signed: bool, is_float: 
         trunc_val < min_val || trunc_val > max_val
     };
 
-    // 4. DEC 格式化 (f32 模式先過 f32 精度損失；超大或超小數使用科學記號)
-    let display_val = if is_float && bit_depth == 32 {
-        (trunc_val as f32) as f64
+    // 4. DEC 格式化
+    //    f32: 顯示真實儲存值 (f32→f64)，限 9 位有效數字以揭示精度損失
+    //    f64: 顯示完整精度，限 17 位有效數字
+    //    整數: 直接輸出截斷後的整數
+    let dec = if is_float && bit_depth == 32 {
+        let real_val = (trunc_val as f32) as f64;
+        format_significant(real_val, 9)
+    } else if is_float {
+        format_significant(trunc_val, 17)
     } else {
-        trunc_val
-    };
-    let dec = if display_val.abs() >= 1e15 || (display_val != 0.0 && display_val.abs() < 1e-6) {
-        format!("{:e}", display_val)
-    } else {
-        format!("{}", display_val)
+        format!("{}", trunc_val as i128)
     };
 
     // 5. HEX 格式化
