@@ -565,7 +565,8 @@ body.theme-dark .v-divider {
     border: none;
 }
 
-.btn:active {
+.btn:active,
+.btn.kb-active {
     transform: scale(0.95);
     box-shadow: var(--sunken-shadow);
 }
