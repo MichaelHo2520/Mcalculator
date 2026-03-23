@@ -2,6 +2,7 @@ pub struct FormatResult {
     pub hex: String,
     pub dec: String,
     pub overflowed: bool,
+    pub truncated: bool,
 }
 
 pub fn get_mask(bit_depth: u32) -> u64 {
@@ -20,16 +21,19 @@ pub fn truncate_and_format(val: f64, bit_depth: u32, is_signed: bool, is_float: 
                 hex: if bit_depth == 32 { format!("{:08X}", (val as f32).to_bits()) } else { format!("{:016X}", val.to_bits()) },
                 dec: if val.is_nan() { "NaN".to_string() } else if val.is_sign_positive() { "Infinity".to_string() } else { "-Infinity".to_string() },
                 overflowed: !val.is_nan(),
+                truncated: false,
             };
         } else {
             return FormatResult {
                 hex: "Error".to_string(),
                 dec: "Error".to_string(),
                 overflowed: false,
+                truncated: false,
             };
         }
     }
 
+    let truncated = !is_float && val != val.trunc();
     let mut trunc_val = if is_float { val } else { val.trunc() };
 
     // Fix negative zero display
@@ -113,5 +117,6 @@ pub fn truncate_and_format(val: f64, bit_depth: u32, is_signed: bool, is_float: 
         hex,
         dec,
         overflowed,
+        truncated,
     }
 }

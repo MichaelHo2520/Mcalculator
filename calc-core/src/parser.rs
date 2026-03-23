@@ -132,12 +132,10 @@ impl Parser {
             Token::Num(n) => Ok(Node::Num(n)),
             Token::Hex(s) => {
                 let uval = u64::from_str_radix(&s, 16).map_err(|_| ParseError::InvalidExpression)?;
+                // Hex input is always treated as an integer value.
+                // IEEE 754 bit interpretation only happens at output (format.rs).
                 let fval = if self.is_float {
-                    if self.bit_depth == 32 {
-                        f32::from_bits(uval as u32) as f64
-                    } else {
-                        f64::from_bits(uval)
-                    }
+                    uval as f64
                 } else if self.is_signed {
                     let shift = 64 - self.bit_depth;
                     let sval = (uval << shift) as i64 >> shift;

@@ -4,8 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputField = document.getElementById('expression-input');
     const buttons = document.querySelectorAll('.btn');
     const cTypeSelect = document.getElementById('c-type-select');
-    const hexOvf = document.getElementById('hex-ovf');
     const decOvf = document.getElementById('dec-ovf');
+    const decTrunc = document.getElementById('dec-trunc');
     const historyPanel = document.getElementById('history-panel');
     const historyListContainer = document.getElementById('history-list');
     const dropdownArrow = document.querySelector('.dropdown-arrow');
@@ -201,7 +201,46 @@ document.addEventListener('DOMContentLoaded', () => {
             isCalculated = false;
         } else if (val === '=') {
             evaluate(false);
-        } else if (/[0-9A-F.]/.test(val) || val === '0x') {
+        } else if (val === '0x') {
+            if (isCalculated) {
+                expression = "";
+                inputField.value = "";
+                isCalculated = false;
+            }
+            const pos = inputField.selectionStart || 0;
+            // Find the number token the cursor is in or adjacent to
+            const tokenPattern = /(0x[0-9A-Fa-f]+|[0-9A-Fa-f.]+)/g;
+            let match;
+            let tokenStart = -1, tokenEnd = -1, tokenText = '';
+            while ((match = tokenPattern.exec(expression)) !== null) {
+                const ts = match.index;
+                const te = ts + match[0].length;
+                if (pos >= ts && pos <= te) {
+                    tokenStart = ts;
+                    tokenEnd = te;
+                    tokenText = match[0];
+                    break;
+                }
+            }
+            if (tokenStart >= 0) {
+                if (/^0x/i.test(tokenText)) {
+                    // Already has 0x prefix — remove it
+                    const raw = tokenText.substring(2);
+                    expression = expression.substring(0, tokenStart) + raw + expression.substring(tokenEnd);
+                    inputField.value = expression;
+                    inputField.setSelectionRange(tokenStart + Math.max(0, pos - tokenStart - 2), tokenStart + Math.max(0, pos - tokenStart - 2));
+                } else {
+                    // Add 0x prefix
+                    expression = expression.substring(0, tokenStart) + '0x' + tokenText + expression.substring(tokenEnd);
+                    inputField.value = expression;
+                    inputField.setSelectionRange(pos + 2, pos + 2);
+                }
+            } else {
+                // No adjacent number — just insert 0x
+                insertAtCursor('0x');
+            }
+            isCalculated = false;
+        } else if (/[0-9A-F.]/.test(val)) {
             if (isCalculated) {
                 expression = "";
                 inputField.value = "";
@@ -282,10 +321,21 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             handleInput('clear-all');
             return;
+        } else if (key === 'Delete') {
+            e.preventDefault();
+            handleInput('clear-all');
+            return;
+        }
+
+        // Handle parentheses with smart-paren logic
+        if (key === '(' || key === ')') {
+            e.preventDefault();
+            handleInput('smart-paren');
+            return;
         }
 
         // Handle mathematical characters (only single chars)
-        if (key.length === 1 && /[0-9a-fA-F\+\-\*\/\.\(\)\%\&\|\^]/.test(key)) {
+        if (key.length === 1 && /[0-9a-fA-F\+\-\*\/\.\%\&\|\^]/.test(key)) {
             if (document.activeElement !== inputField) {
                 e.preventDefault();
                 handleInput(key.toUpperCase());
@@ -461,14 +511,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const tauri = window.__TAURI__;
     const invoke = tauri && tauri.core ? tauri.core.invoke : (tauri ? tauri.invoke : null);
 
-    // OVF Helpers
+    // OVF / TRUNC Helpers
     function showOvf() {
-        hexOvf.style.display = 'block';
         decOvf.style.display = 'block';
     }
     function hideOvf() {
-        hexOvf.style.display = 'none';
         decOvf.style.display = 'none';
+    }
+    function showTrunc() {
+        decTrunc.style.display = 'block';
+    }
+    function hideTrunc() {
+        decTrunc.style.display = 'none';
     }
 
     // History Management
@@ -592,6 +646,7 @@ document.addEventListener('DOMContentLoaded', () => {
             hexValue.textContent = "0";
             decValue.textContent = "0";
             hideOvf();
+            hideTrunc();
             return;
         }
 
@@ -610,11 +665,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 decValue.textContent = "無效輸入";
                 hexValue.textContent = "---";
                 hideOvf();
+                hideTrunc();
             } else {
                 hexValue.textContent = result.hex;
                 decValue.textContent = result.dec;
                 
                 if (result.overflowed) { showOvf(); } else { hideOvf(); }
+                if (result.truncated) { showTrunc(); } else { hideTrunc(); }
 
                 if (!isPreview) {
                     addHistory(expression, result.dec, cTypeSelect.value);

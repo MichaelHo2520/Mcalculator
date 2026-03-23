@@ -11,6 +11,7 @@ struct EvaluateResponse {
     dec: String,
     error: Option<String>,
     overflowed: bool,
+    truncated: bool,
 }
 
 #[tauri::command]
@@ -22,6 +23,7 @@ fn evaluate(expression: String, bit_depth: u32, is_signed: bool, is_degree: bool
         dec: res.dec,
         error: res.error,
         overflowed: res.overflowed,
+        truncated: res.truncated,
     }
 }
 

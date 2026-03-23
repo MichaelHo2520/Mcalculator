@@ -245,12 +245,16 @@ body {
     border-radius: var(--btn-radius);
     box-shadow: var(--btn-shadow);
     padding: 2px 6px;
-    font-size: 11px;
+    font-size: 14px;
     font-weight: bold;
     font-family: var(--font-family);
     cursor: pointer;
     outline: none;
     text-align: left;
+}
+
+#c-type-select option {
+    font-size: 11px;
 }
 
 
@@ -274,6 +278,23 @@ body {
 @keyframes ovf-pulse {
     0%, 100% { opacity: 0.5; }
     50% { opacity: 1; }
+}
+
+.trunc-badge {
+    display: none;
+    position: absolute;
+    top: 4px;
+    right: 8px;
+    font-size: 9px;
+    font-weight: bold;
+    color: #ffffff;
+    background-color: #e67e22;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-family: Arial, sans-serif;
+    letter-spacing: normal;
+    animation: ovf-pulse 1.5s ease-in-out infinite;
+    z-index: 10;
 }
 
 .history-panel {

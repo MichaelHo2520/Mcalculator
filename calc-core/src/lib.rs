@@ -15,6 +15,7 @@ pub struct EvalResult {
     pub dec: String,
     pub error: Option<String>,
     pub overflowed: bool,
+    pub truncated: bool,
 }
 
 pub fn evaluate(expression: &str, bit_depth: u32, is_signed: bool, is_degree: bool, is_float: bool) -> EvalResult {
@@ -33,6 +34,7 @@ pub fn evaluate(expression: &str, bit_depth: u32, is_signed: bool, is_degree: bo
                                 dec: res.dec,
                                 error: None,
                                 overflowed: res.overflowed,
+                                truncated: res.truncated,
                             }
                         }
                         Err(e) => EvalResult {
@@ -40,6 +42,7 @@ pub fn evaluate(expression: &str, bit_depth: u32, is_signed: bool, is_degree: bo
                             dec: "Error".to_string(),
                             error: Some(format!("{:?}", e)),
                             overflowed: false,
+                            truncated: false,
                         }
                     }
                 }
@@ -48,6 +51,7 @@ pub fn evaluate(expression: &str, bit_depth: u32, is_signed: bool, is_degree: bo
                     dec: "Error".to_string(),
                     error: Some(format!("{:?}", e)),
                     overflowed: false,
+                    truncated: false,
                 }
             }
         }
@@ -56,6 +60,7 @@ pub fn evaluate(expression: &str, bit_depth: u32, is_signed: bool, is_degree: bo
             dec: "Error".to_string(),
             error: Some(e),
             overflowed: false,
+            truncated: false,
         }
     }
 }
@@ -283,6 +288,36 @@ mod tests {
         let f64_res = evaluate("1/3", 64, true, false, true);
         assert_eq!(f32_res.hex.len(), 8, "f32 HEX 應為 8碼，實際: {}", f32_res.hex);
         assert_eq!(f64_res.hex.len(), 16, "f64 HEX 應為 16碼，實際: {}", f64_res.hex);
+    }
+
+    // ── 浮點模式下 hex 輸入永遠當整數值 ──────────────────────────────
+
+    /// 0x3C 在 f32/f64 模式下應視為整數 60，而非 IEEE 754 位元模式
+    #[test]
+    fn test_float_hex_as_integer() {
+        // f32 模式: 1/0x3C = 1/60
+        let f32_res = evaluate("1/0x3C", 32, true, false, true);
+        assert!(f32_res.error.is_none(), "f32 1/0x3C 不應出錯: {:?}", f32_res.error);
+        let f32_dec: f64 = f32_res.dec.parse().expect("f32 DEC 應為有效數字");
+        assert!((f32_dec - 1.0/60.0).abs() < 1e-6, "f32 1/0x3C 應≈0.01667，實際: {}", f32_res.dec);
+
+        // f64 模式: 1/0x3C = 1/60
+        let f64_res = evaluate("1/0x3C", 64, true, false, true);
+        assert!(f64_res.error.is_none(), "f64 1/0x3C 不應出錯: {:?}", f64_res.error);
+        let f64_dec: f64 = f64_res.dec.parse().expect("f64 DEC 應為有效數字");
+        assert!((f64_dec - 1.0/60.0).abs() < 1e-10, "f64 1/0x3C 應≈0.01667，實際: {}", f64_res.dec);
+
+        // f32 與 f64 的精度應有差異（DEC 或 HEX 不同）
+        assert_ne!(f32_res.hex, f64_res.hex, "f32 與 f64 的 HEX 輸出應不同");
+    }
+
+    /// 即使 hex 位數剛好等於 IEEE 754 寬度，仍當整數解讀
+    #[test]
+    fn test_float_hex_full_width_still_integer() {
+        // 0x3F800000 (8位) 在 f32 模式 = 整數 1065353216，非 IEEE 754 的 1.0
+        let res = evaluate("0x3F800000", 32, true, false, true);
+        let dec: f64 = res.dec.parse().expect("應為有效數字");
+        assert!((dec - 1065353216.0).abs() < 1.0, "f32 0x3F800000 應為整數 1065353216，實際: {}", res.dec);
     }
 
     // ── 超小數 DEC 顯示格式 ──────────────────────────────────────────
