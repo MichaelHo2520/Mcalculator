@@ -355,6 +355,34 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Keyboard → UI button visual feedback
+    function findBtnByKey(key) {
+        const keyMap = {
+            'Enter': '=', '=': '=',
+            'Backspace': 'entry-clear',
+            'Escape': 'clear-all', 'Delete': 'clear-all',
+            '(': 'smart-paren', ')': 'smart-paren',
+        };
+        let val = keyMap[key];
+        if (!val && key.length === 1 && /[0-9a-fA-F\+\-\*\/\.\%\&\|\^]/.test(key)) {
+            val = key.toUpperCase();
+            // For operators that stay lowercase in data-val
+            if (/[\+\-\*\/\.\%\&\|\^]/.test(key)) val = key;
+        }
+        if (!val) return null;
+        return document.querySelector(`.btn[data-val="${CSS.escape(val)}"]`);
+    }
+
+    document.addEventListener('keydown', (e) => {
+        const btn = findBtnByKey(e.key);
+        if (btn) btn.classList.add('kb-active');
+    });
+
+    document.addEventListener('keyup', (e) => {
+        const btn = findBtnByKey(e.key);
+        if (btn) btn.classList.remove('kb-active');
+    });
+
     // Manual input in text field
     inputField.addEventListener('input', (e) => {
         expression = e.target.value;

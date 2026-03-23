@@ -9,7 +9,7 @@ description: 分析 git 變更並產出標準化的中文 Conventional Commit Me
 1.  **取得 git 變更資訊**：
     *   優先執行 `git diff --cached` 取得已暫存的變更。
     *   若無暫存變更，則執行 `git diff` 取得未暫存的變更。
-    *   如果都沒有變更，告知使用者目前沒有修改。
+    *   **關鍵限制**：必須確保產出的清單**僅包含尚未 commit 的變更**。若不確定目前的 branch 狀態，應先執行 `git status` 或 `git log -n 1` 確認上一個 commit 的內容，避免將已完成的工作重複寫入新訊息中。
     *   *(提示：若遇到中文路徑亂碼，可嘗試 `git -c core.quotepath=false diff`)*
 
 2.  **分析變更**：
