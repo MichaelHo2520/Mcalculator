@@ -19,7 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Settings Management
     const DEFAULT_SETTINGS = {
         collapsedH: 165,
-        expandedH: 380,
+        expandedH: 600,
+        windowW: 540,
         isDarkTheme: false,
         selectedType: 'int64',
         isDegree: false
@@ -289,7 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resizeTimeout = setTimeout(() => {
             if (isAutoResizing) return; // 再次確認防呆標記
 
-            const currentInnerHeight = Math.max(160, Math.min(410, window.innerHeight));
+            const currentInnerHeight = Math.max(160, Math.min(800, window.innerHeight));
             const settings = getSettings();
             
             // 判斷當下處於哪種高度模式
@@ -303,6 +304,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 collapsedInput.value = currentInnerHeight;
             }
 
+            // Save current width
+            settings.windowW = window.innerWidth;
+            if (windowWInput) windowWInput.value = window.innerWidth;
+
             saveSettings(settings);
             
         }, 150);
@@ -312,6 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const settingsToggle = document.getElementById('settings-toggle');
     const settingsModal = document.getElementById('settings-modal');
     const collapsedInput = document.getElementById('collapsed-h-input');
+    const windowWInput = document.getElementById('window-w-input');
     const expandedInput = document.getElementById('expanded-h-input');
     const saveBtn = document.getElementById('save-settings');
     const resetBtn = document.getElementById('reset-settings');
@@ -320,6 +326,7 @@ document.addEventListener('DOMContentLoaded', () => {
     settingsToggle.addEventListener('click', () => {
         const settings = getSettings();
         collapsedInput.value = settings.collapsedH;
+        windowWInput.value = settings.windowW || 540;
         expandedInput.value = settings.expandedH;
         settingsModal.classList.remove('hidden');
     });
@@ -329,17 +336,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const newSettings = {
             ...current,
             collapsedH: parseFloat(collapsedInput.value) || DEFAULT_SETTINGS.collapsedH,
+            windowW: parseFloat(windowWInput.value) || DEFAULT_SETTINGS.windowW,
             expandedH: parseFloat(expandedInput.value) || DEFAULT_SETTINGS.expandedH,
             isDarkTheme: document.body.classList.contains('theme-dark')
         };
         saveSettings(newSettings);
         settingsModal.classList.add('hidden');
+        
+        // Apply width immediately
+        try {
+            await invoke('init_window', { targetLogicalW: newSettings.windowW });
+        } catch (e) {}
+
         await updateWindowSize();
         inputField.focus();
     });
 
     resetBtn.addEventListener('click', () => {
         collapsedInput.value = DEFAULT_SETTINGS.collapsedH;
+        windowWInput.value = DEFAULT_SETTINGS.windowW;
         expandedInput.value = DEFAULT_SETTINGS.expandedH;
     });
 
@@ -477,6 +492,11 @@ document.addEventListener('DOMContentLoaded', () => {
         updateUnitBtnDisplay();
 
         loadHistory();
+        
+        // Restore window width
+        try {
+            await invoke('init_window', { targetLogicalW: settings.windowW || 540 });
+        } catch (e) {}
 
         try {
             await updateWindowSize();

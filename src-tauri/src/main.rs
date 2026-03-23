@@ -100,13 +100,43 @@ fn toggle_keyboard(_visible: bool, target_logical_h: f64, window: tauri::Window)
 }
 
 #[tauri::command]
+fn init_window(target_logical_w: f64, window: tauri::Window) {
+    #[cfg(target_os = "windows")]
+    {
+        let hwnd = match window.hwnd() {
+            Ok(h) => h.0 as isize,
+            Err(_) => return,
+        };
+        let factor = window.scale_factor().unwrap_or(1.0);
+        let mut rect = win32::RECT::default();
+        let mut client = win32::RECT::default();
+        unsafe {
+            win32::GetWindowRect(hwnd, &mut rect);
+            win32::GetClientRect(hwnd, &mut client);
+        }
+        let chrome_w = (rect.right - rect.left) - (client.right - client.left);
+        let new_inner_w = (target_logical_w * factor).round() as i32;
+        let new_outer_w = new_inner_w + chrome_w;
+        let outer_h = rect.bottom - rect.top;
+        unsafe {
+            win32::SetWindowPos(
+                hwnd, 0, 0, 0,
+                new_outer_w, outer_h,
+                win32::SWP_NOMOVE | win32::SWP_NOZORDER,
+            );
+        }
+    }
+}
+
+
+#[tauri::command]
 fn show_window(window: tauri::Window) {
     let _ = window.show();
 }
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![evaluate, toggle_keyboard, show_window])
+        .invoke_handler(tauri::generate_handler![evaluate, toggle_keyboard, show_window, init_window])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
