@@ -550,14 +550,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     function renderHistory() {
         historyListContainer.innerHTML = '';
-        historyList.forEach(item => {
+        historyList.forEach((item, index) => {
             const div = document.createElement('div');
             div.className = 'history-item';
             div.innerHTML = `
                 <span class="hist-expr">${item.expression}</span>
                 <span class="hist-result">= ${item.result}</span>
                 <span class="hist-type">${item.cType}</span>
+                <button class="hist-delete" title="刪除此筆紀錄">&times;</button>
             `;
+            // 點擊刪除按鈕：移除單筆
+            div.querySelector('.hist-delete').addEventListener('click', (e) => {
+                e.stopPropagation();
+                historyList.splice(index, 1);
+                saveHistory();
+                renderHistory();
+            });
+            // 點擊項目本身：載入運算式
             div.addEventListener('click', () => {
                 expression = item.expression;
                 inputField.value = expression;
