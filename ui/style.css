@@ -596,13 +596,11 @@ button:focus-visible {
 
 .btn.op {
     color: var(--color-op);
-    font-size: 18px;
-    font-weight: bold;
 }
 
 .btn.sci {
     color: var(--color-sci);
-    font-size: 14px;
+    font-size: clamp(13px, 2vw, 16px);
 }
 
 .btn.func {
@@ -611,7 +609,7 @@ button:focus-visible {
 
 .btn.bit {
     color: var(--color-bit);
-    font-size: 14px;
+    font-size: clamp(14px, 2.2vw, 18px);
 }
 
 .btn.paren {
@@ -619,7 +617,7 @@ button:focus-visible {
 }
 
 .group-4 .btn {
-    font-size: 13px;
+    font-size: clamp(13px, 2vw, 16px);
 }
 
 .btn.theme-toggle {
