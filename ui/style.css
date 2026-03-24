@@ -96,7 +96,7 @@ body.theme-dark {
     --input-bg-distinct: #1d251d;
     --input-border-distinct: 1px solid #324232;
 
-    --font-family: 'Roboto', 'Segoe UI', Courier, monospace;
+    --font-family: 'Quicksand', 'Inter', 'Segoe UI', sans-serif;
 }
 
 * {
