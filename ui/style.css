@@ -103,7 +103,7 @@ body.theme-dark {
     box-sizing: border-box;
     font-family: var(--font-family);
     user-select: none;
-    transition: background 0.4s, background-color 0.4s, color 0.4s, border-color 0.4s, box-shadow 0.4s, border-radius 0.4s, transform 0.2s;
+    transition: background-color 0.4s, color 0.4s, border-color 0.4s, box-shadow 0.4s, border-radius 0.4s;
 }
 
 body {
@@ -563,6 +563,7 @@ body.theme-dark .v-divider {
     justify-content: center;
     align-items: center;
     border: none;
+    transition: transform 0.2s, box-shadow 0.4s;
 }
 
 .btn:active,
@@ -829,6 +830,7 @@ body.theme-dark .tab-divider {
     cursor: pointer;
     border: none;
     padding: 0;
+    transition: transform 0.2s, box-shadow 0.4s;
 }
 
 .bit-cell.active-bit {
