@@ -48,6 +48,8 @@
     --badge-ovf-bg: #c0392b;
     --badge-trunc-bg: #e67e22;
     --badge-text: #ffffff;
+    --divider-color: rgba(0, 0, 0, 0.12);
+    --divider-color-subtle: rgba(0, 0, 0, 0.05);
 
     --font-family: 'Quicksand', 'Inter', 'Segoe UI', sans-serif;
 }
@@ -101,6 +103,8 @@ body.theme-dark {
     --badge-ovf-bg: #d63031;
     --badge-trunc-bg: #f39c12;
     --badge-text: #ffffff;
+    --divider-color: rgba(255, 255, 255, 0.12);
+    --divider-color-subtle: rgba(255, 255, 255, 0.05);
 
     --font-family: 'Quicksand', 'Inter', 'Segoe UI', sans-serif;
 }
@@ -522,13 +526,9 @@ input[type="radio"] {
 
 .v-divider {
     width: 3px;
-    background-color: rgba(0, 0, 0, 0.12);
+    background-color: var(--divider-color);
     border-radius: 2px;
     margin: 0 4px;
-}
-
-body.theme-dark .v-divider {
-    background-color: rgba(255, 255, 255, 0.12);
 }
 
 .button-group {
@@ -777,12 +777,8 @@ button:focus-visible {
 
 .tab-divider {
     height: 1px;
-    background-color: rgba(0, 0, 0, 0.05);
+    background-color: var(--divider-color-subtle);
     margin-top: -1px;
-}
-
-body.theme-dark .tab-divider {
-    background-color: rgba(255, 255, 255, 0.05);
 }
 
 /* Bit Display Panel Styles */
@@ -868,10 +864,6 @@ body.theme-dark .tab-divider {
 
 .h-divider {
     height: 2px;
-    background-color: rgba(0, 0, 0, 0.05);
+    background-color: var(--divider-color-subtle);
     margin: 2px 0;
-}
-
-body.theme-dark .h-divider {
-    background-color: rgba(255, 255, 255, 0.05);
 }
