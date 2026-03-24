@@ -45,6 +45,9 @@
     --input-label-color: #5d826a;
     --input-bg-distinct: #d0ded0;
     --input-border-distinct: 1px solid #aebfae;
+    --badge-ovf-bg: #c0392b;
+    --badge-trunc-bg: #e67e22;
+    --badge-text: #ffffff;
 
     --font-family: 'Quicksand', 'Inter', 'Segoe UI', sans-serif;
 }
@@ -95,6 +98,9 @@ body.theme-dark {
     --input-label-color: #6a9c78;
     --input-bg-distinct: #1d251d;
     --input-border-distinct: 1px solid #324232;
+    --badge-ovf-bg: #d63031;
+    --badge-trunc-bg: #f39c12;
+    --badge-text: #ffffff;
 
     --font-family: 'Quicksand', 'Inter', 'Segoe UI', sans-serif;
 }
@@ -265,8 +271,8 @@ body {
     right: 8px;
     font-size: 9px;
     font-weight: bold;
-    color: #ffffff;
-    background-color: #c0392b;
+    color: var(--badge-text);
+    background-color: var(--badge-ovf-bg);
     padding: 1px 4px;
     border-radius: 3px;
     font-family: Arial, sans-serif;
@@ -287,8 +293,8 @@ body {
     right: 8px;
     font-size: 9px;
     font-weight: bold;
-    color: #ffffff;
-    background-color: #e67e22;
+    color: var(--badge-text);
+    background-color: var(--badge-trunc-bg);
     padding: 1px 4px;
     border-radius: 3px;
     font-family: Arial, sans-serif;
