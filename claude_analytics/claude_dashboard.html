@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Premium Analytics</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --primary: #38bdf8;
+            --secondary: #818cf8;
+            --accent: #c084fc;
+            --text: #f8fafc;
+            --text-dim: #94a3b8;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--bg);
+            background-image: radial-gradient(circle at top right, #1e293b, #0f172a);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        header {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin: 0;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        .session-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .session-count {
+            font-size: 4rem;
+            font-weight: 800;
+            margin: 0.5rem 0;
+            color: var(--primary);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .timer-card {
+            text-align: center;
+        }
+
+        .progress-ring {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 1rem;
+        }
+
+        .progress-ring svg {
+            width: 120px;
+            height: 120px;
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring circle {
+            fill: transparent;
+            stroke-width: 8;
+            stroke-linecap: round;
+        }
+
+        .progress-ring .background {
+            stroke: rgba(255, 255, 255, 0.05);
+        }
+
+        .progress-ring .foreground {
+            stroke: var(--primary);
+            transition: stroke-dashoffset 0.5s ease;
+        }
+
+        .progress-ring .text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .stat-label {
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+            font-size: 0.8rem;
+        }
+
+        .reset-time {
+            font-size: 0.9rem;
+            color: var(--accent);
+            margin-top: 0.5rem;
+        }
+
+        .token-info {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 1rem;
+        }
+
+        .token-stat {
+            text-align: center;
+        }
+
+        .token-val {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .update-time {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            font-size: 0.7rem;
+            color: var(--text-dim);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Claude Premium Analytics</h1>
+        </header>
+
+        <section class="glass-card session-card">
+            <div class="session-header">
+                <div>
+                    <div class="stat-label">Current Session Messages</div>
+                    <div id="sessionCount" class="session-count">0</div>
+                </div>
+                <div style="text-align: right">
+                    <div class="stat-label">Usage Percentage</div>
+                    <div id="usagePercent" style="font-size: 2rem; font-weight: bold;">0%</div>
+                </div>
+            </div>
+        </section>
+
+        <div class="grid">
+            <section class="glass-card timer-card">
+                <div class="stat-label">5-Hour Reset Window</div>
+                <div class="progress-ring">
+                    <svg>
+                        <circle class="background" cx="60" cy="60" r="50"></circle>
+                        <circle id="ring5h" class="foreground" cx="60" cy="60" r="50" style="stroke-dasharray: 314.159; stroke-dashoffset: 314.159;"></circle>
+                    </svg>
+                    <div id="text5h" class="text">0/45</div>
+                </div>
+                <div id="reset5h" class="reset-time">Next reset: --:--</div>
+            </section>
+
+            <section class="glass-card timer-card">
+                <div class="stat-label">7-Day Usage</div>
+                <div class="progress-ring">
+                    <svg>
+                        <circle class="background" cx="60" cy="60" r="50"></circle>
+                        <circle id="ring7d" class="foreground" cx="60" cy="60" r="50" style="stroke-dasharray: 314.159; stroke-dashoffset: 314.159; stroke: var(--secondary);"></circle>
+                    </svg>
+                    <div id="text7d" class="text">0/500</div>
+                </div>
+                <div id="reset7d" class="reset-time">Rolling limit active</div>
+            </section>
+        </div>
+
+        <section class="glass-card">
+            <div class="stat-label">Token Consumption</div>
+            <div class="token-info">
+                <div class="token-stat">
+                    <div class="token-val" id="tokensInput">0</div>
+                    <div class="stat-label">Input</div>
+                </div>
+                <div class="token-stat">
+                    <div class="token-val" id="tokensOutput">0</div>
+                    <div class="stat-label">Output</div>
+                </div>
+                <div class="token-stat">
+                    <div class="token-val" id="tokensCache" style="color: var(--accent)">0</div>
+                    <div class="stat-label">Cache Read</div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="update-time" id="lastUpdate">Last updated: Never</div>
+
+    <script>
+        async function updateDashboard() {
+            try {
+                const response = await fetch('dashboard_data.json');
+                const data = await response.json();
+
+                // Current Session
+                document.getElementById('sessionCount').innerText = data.currentSession.count;
+                document.getElementById('usagePercent').innerText = data.usage5H.percent + '%';
+
+                // 5H Window
+                const ring5h = document.getElementById('ring5h');
+                const text5h = document.getElementById('text5h');
+                const reset5h = document.getElementById('reset5h');
+                
+                const offset5h = 314.159 - (Math.min(data.usage5H.percent, 100) / 100) * 314.159;
+                ring5h.style.strokeDashoffset = offset5h;
+                text5h.innerText = data.usage5H.percent + '%'; // Show percentage in ring
+                
+                if (data.usage5H.nextReset) {
+                    const resetDate = new Date(data.usage5H.nextReset);
+                    reset5h.innerText = 'Next Reset (5H): ' + resetDate.toLocaleTimeString();
+                }
+
+                // 7D Window
+                const ring7d = document.getElementById('ring7d');
+                const text7d = document.getElementById('text7d');
+                const reset7d = document.getElementById('reset7d');
+                const offset7d = 314.159 - (Math.min(data.usage7D.percent, 100) / 100) * 314.159;
+                ring7d.style.strokeDashoffset = offset7d;
+                text7d.innerText = data.usage7D.percent + '%'; // Show percentage in ring
+                
+                if (data.usage7D.nextReset) {
+                    const resetDate7 = new Date(data.usage7D.nextReset);
+                    reset7d.innerText = 'Next Reset (7D): ' + resetDate7.toLocaleDateString() + ' ' + resetDate7.toLocaleTimeString();
+                } else {
+                    reset7d.innerText = 'No 7-Day activity';
+                }
+
+                // Tokens
+                document.getElementById('tokensInput').innerText = data.totalTokens.input.toLocaleString();
+                document.getElementById('tokensOutput').innerText = data.totalTokens.output.toLocaleString();
+                document.getElementById('tokensCache').innerText = data.totalTokens.cacheRead.toLocaleString();
+
+                document.getElementById('lastUpdate').innerText = 'Last Log Sync: ' + new Date(data.lastUpdate).toLocaleString();
+
+            } catch (e) {
+                console.error('Failed to update dashboard:', e);
+            }
+        }
+
+        updateDashboard();
+        setInterval(updateDashboard, 5000); // Update every 5 seconds
+    </script>
+</body>
+</html>
