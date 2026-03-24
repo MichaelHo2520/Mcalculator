@@ -1,11 +1,13 @@
 {
   "name": "mcalculator",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "build": "tauri build",
+    "build:rust": "cd src-tauri && cargo build --release"
   },
   "keywords": [],
   "author": "",

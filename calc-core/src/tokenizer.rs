@@ -9,6 +9,8 @@ pub enum Token {
     LParen,
     RParen,
     Factorial, // '!'
+    ShiftOp(String),  // "<<" 或 ">>"
+    BitNot,           // '~'
 }
 
 pub fn tokenize(input: &str) -> Result<Vec<Token>, String> {
@@ -26,6 +28,15 @@ pub fn tokenize(input: &str) -> Result<Vec<Token>, String> {
             '(' => { tokens.push(Token::LParen); i += 1; }
             ')' => { tokens.push(Token::RParen); i += 1; }
             '!' => { tokens.push(Token::Factorial); i += 1; }
+            '~' => { tokens.push(Token::BitNot); i += 1; }
+            '<' if i + 1 < chars.len() && chars[i+1] == '<' => {
+                tokens.push(Token::ShiftOp("<<".to_string()));
+                i += 2;
+            }
+            '>' if i + 1 < chars.len() && chars[i+1] == '>' => {
+                tokens.push(Token::ShiftOp(">>".to_string()));
+                i += 2;
+            }
             '0' if i + 1 < chars.len() && (chars[i+1] == 'x' || chars[i+1] == 'X') => {
                 i += 2;
                 let mut hex_str = String::new();

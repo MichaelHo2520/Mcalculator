@@ -1,7 +1,7 @@
 {
-  "productName": "麥克計算機",
-  "version": "1.0.0",
-  "identifier": "com.mcalc.app",
+  "productName": "mcalculator",
+  "version": "1.1.0",
+  "identifier": "com.mcalc.mcalculator",
   "build": {
     "frontendDist": "../ui"
   },
@@ -10,13 +10,15 @@
     "windows": [
       {
         "title": "麥克計算機",
-        "width": 430,
-        "height": 170,
+        "width": 540,
+        "height": 165,
         "minWidth": 430,
-        "minHeight": 170,
-        "maxWidth": 430,
-        "maxHeight": 330,
-        "resizable": false,
+        "minHeight": 160,
+        "maxWidth": 1000,
+        "maxHeight": 800,
+        "resizable": true,
+        "maximizable": false,
+        "center": true,
         "visible": false
       }
     ],

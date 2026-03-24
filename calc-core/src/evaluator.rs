@@ -1,5 +1,9 @@
 use crate::ast::{Node, BinOp, UnaryOp};
 
+fn round_near_zero(v: f64) -> f64 {
+    if v.abs() < 1e-10 { 0.0 } else { v }
+}
+
 #[derive(Debug)]
 pub enum EvalError {
     DivisionByZero,
@@ -30,8 +34,11 @@ impl Evaluator {
                     BinOp::BitAnd => Ok((l.trunc() as i64 & r.trunc() as i64) as f64),
                     BinOp::BitOr => Ok((l.trunc() as i64 | r.trunc() as i64) as f64),
                     BinOp::BitXor => Ok((l.trunc() as i64 ^ r.trunc() as i64) as f64),
+                    BinOp::Shl => Ok((l.trunc() as i64).wrapping_shl(r.trunc() as u32) as f64),
+                    BinOp::Shr => Ok((l.trunc() as i64).wrapping_shr(r.trunc() as u32) as f64),
                 }
             }
+            Node::UnaryOp(UnaryOp::BitNot, expr) => Ok(!(self.eval(expr)?.trunc() as i64) as f64),
             Node::UnaryOp(UnaryOp::Pos, expr) => self.eval(expr),
             Node::UnaryOp(UnaryOp::Neg, expr) => Ok(-self.eval(expr)?),
             Node::FnCall(name, expr) => {
@@ -40,9 +47,9 @@ impl Evaluator {
                     v = v.to_radians();
                 }
                 match name.as_str() {
-                    "SIN" => Ok(v.sin()),
-                    "COS" => Ok(v.cos()),
-                    "TAN" => Ok(v.tan()),
+                    "SIN" => Ok(round_near_zero(v.sin())),
+                    "COS" => Ok(round_near_zero(v.cos())),
+                    "TAN" => Ok(round_near_zero(v.tan())),
                     "LOG" => Ok(v.log10()),
                     "EXP" => Ok(v.exp()),
                     "SQRT" => Ok(v.sqrt()),

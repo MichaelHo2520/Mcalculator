@@ -1,0 +1,172 @@
+{
+  "totalTokens": {
+    "input": 86,
+    "output": 26956,
+    "cacheRead": 1948225,
+    "cacheCreate": 167602
+  },
+  "sessions": [],
+  "allMessages": [
+    {
+      "timestamp": 1774224835136,
+      "type": "user"
+    },
+    {
+      "timestamp": 1774224912602,
+      "type": "user"
+    },
+    {
+      "timestamp": 1774224920493,
+      "type": "user"
+    },
+    {
+      "timestamp": 1774224920595,
+      "type": "user"
+    },
+    {
+      "timestamp": 1774224981343,
+      "type": "user"
+    },
+    {
+      "timestamp": 1774225077869,
+      "type": "user"
+    },
+    {
+      "timestamp": 1774225083393,
+      "type": "user"
+    },
+    {
+      "timestamp": 1774225087780,
+      "type": "user"
+    },
+    {
+      "timestamp": 1774225095665,
+      "type": "user"
+    },
+    {
+      "timestamp": 1774225119113,
+      "type": "user"
+    },
+    {
+      "timestamp": 1774225121882,
+      "type": "user"
+    },
+    {
+      "timestamp": 1774225122575,
+      "type": "user"
+    },
+    {
+      "timestamp": 1774226335708,
+      "type": "user"
+    },
+    {
+      "timestamp": 1774226339619,
+      "type": "user"
+    },
+    {
+      "timestamp": 1774226340106,
+      "type": "user"
+    },
+    {
+      "timestamp": 1774226342137,
+      "type": "user"
+    },
+    {
+      "timestamp": 1774226342487,
+      "type": "user"
+    },
+    {
+      "timestamp": 1774226434307,
+      "type": "user"
+    },
+    {
+      "timestamp": 1774226510241,
+      "type": "user"
+    },
+    {
+      "timestamp": 1774226527193,
+      "type": "user"
+    },
+    {
+      "timestamp": 1774226564387,
+      "type": "user"
+    },
+    {
+      "timestamp": 1774226571462,
+      "type": "user"
+    },
+    {
+      "timestamp": 1774226583251,
+      "type": "user"
+    },
+    {
+      "timestamp": 1774226591801,
+      "type": "user"
+    },
+    {
+      "timestamp": 1774226605842,
+      "type": "user"
+    },
+    {
+      "timestamp": 1774226613418,
+      "type": "user"
+    },
+    {
+      "timestamp": 1774230182980,
+      "type": "user"
+    },
+    {
+      "timestamp": 1774230218024,
+      "type": "user"
+    },
+    {
+      "timestamp": 1774230262814,
+      "type": "user"
+    },
+    {
+      "timestamp": 1774230262908,
+      "type": "user"
+    },
+    {
+      "timestamp": 1774230322842,
+      "type": "user"
+    },
+    {
+      "timestamp": 1774230381876,
+      "type": "user"
+    },
+    {
+      "timestamp": 1774230506466,
+      "type": "user"
+    },
+    {
+      "timestamp": 1774230510523,
+      "type": "user"
+    },
+    {
+      "timestamp": 1774230593754,
+      "type": "user"
+    },
+    {
+      "timestamp": 1774230593755,
+      "type": "user"
+    }
+  ],
+  "lastUpdate": "2026-03-23T03:47:31.493Z",
+  "usage5H": {
+    "count": 36,
+    "limit": 45,
+    "percent": 80,
+    "nextReset": 1774242835136
+  },
+  "usage7D": {
+    "count": 36,
+    "limit": 500,
+    "percent": 7,
+    "nextReset": 1774829635136
+  },
+  "currentSession": {
+    "count": 36,
+    "startTime": 1774224835136
+  }
+}

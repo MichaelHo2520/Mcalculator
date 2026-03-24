@@ -12,11 +12,14 @@ pub enum ParseError {
 pub struct Parser {
     tokens: Vec<Token>,
     pos: usize,
+    bit_depth: u32,
+    is_signed: bool,
+    is_float: bool,
 }
 
 impl Parser {
-    pub fn new(tokens: Vec<Token>) -> Self {
-        Parser { tokens, pos: 0 }
+    pub fn new(tokens: Vec<Token>, bit_depth: u32, is_signed: bool, is_float: bool) -> Self {
+        Parser { tokens, pos: 0, bit_depth, is_signed, is_float }
     }
     pub fn parse(&mut self) -> Result<Node, ParseError> {
         if self.tokens.is_empty() { return Ok(Node::Num(0.0)); }
@@ -55,10 +58,20 @@ impl Parser {
         Ok(node)
     }
     fn parse_bit_and(&mut self) -> Result<Node, ParseError> {
-        let mut node = self.parse_add()?;
+        let mut node = self.parse_shift()?;
         while let Some(Token::BitOp('&')) = self.peek() {
             self.advance();
-            node = Node::BinaryOp(Box::new(node), BinOp::BitAnd, Box::new(self.parse_add()?));
+            node = Node::BinaryOp(Box::new(node), BinOp::BitAnd, Box::new(self.parse_shift()?));
+        }
+        Ok(node)
+    }
+    fn parse_shift(&mut self) -> Result<Node, ParseError> {
+        let mut node = self.parse_add()?;
+        while let Some(Token::ShiftOp(op)) = self.peek() {
+            let op = op.clone();
+            self.advance();
+            let bin_op = if op == "<<" { BinOp::Shl } else { BinOp::Shr };
+            node = Node::BinaryOp(Box::new(node), bin_op, Box::new(self.parse_add()?));
         }
         Ok(node)
     }
@@ -87,12 +100,20 @@ impl Parser {
     }
     fn parse_unary(&mut self) -> Result<Node, ParseError> {
         if let Some(tok) = self.peek() {
-            if let Token::Op('+') = tok {
-                self.advance();
-                return Ok(Node::UnaryOp(UnaryOp::Pos, Box::new(self.parse_unary()?)));
-            } else if let Token::Op('-') = tok {
-                self.advance();
-                return Ok(Node::UnaryOp(UnaryOp::Neg, Box::new(self.parse_unary()?)));
+            match tok {
+                Token::Op('+') => {
+                    self.advance();
+                    return Ok(Node::UnaryOp(UnaryOp::Pos, Box::new(self.parse_unary()?)));
+                }
+                Token::Op('-') => {
+                    self.advance();
+                    return Ok(Node::UnaryOp(UnaryOp::Neg, Box::new(self.parse_unary()?)));
+                }
+                Token::BitNot => {
+                    self.advance();
+                    return Ok(Node::UnaryOp(UnaryOp::BitNot, Box::new(self.parse_unary()?)));
+                }
+                _ => {}
             }
         }
         self.parse_factorial()
@@ -110,8 +131,19 @@ impl Parser {
         match tok {
             Token::Num(n) => Ok(Node::Num(n)),
             Token::Hex(s) => {
-                let val = i64::from_str_radix(&s, 16).map_err(|_| ParseError::InvalidExpression)? as f64;
-                Ok(Node::Num(val))
+                let uval = u64::from_str_radix(&s, 16).map_err(|_| ParseError::InvalidExpression)?;
+                // Hex input is always treated as an integer value.
+                // IEEE 754 bit interpretation only happens at output (format.rs).
+                let fval = if self.is_float {
+                    uval as f64
+                } else if self.is_signed {
+                    let shift = 64 - self.bit_depth;
+                    let sval = (uval << shift) as i64 >> shift;
+                    sval as f64
+                } else {
+                    uval as f64
+                };
+                Ok(Node::Num(fval))
             }
             Token::Const(s) if s == "PI" => Ok(Node::Num(core::f64::consts::PI)),
             Token::Fn(name) => {

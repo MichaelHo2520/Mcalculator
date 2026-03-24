@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>麥克計算機 V1.0</title>
+    <title>麥克計算機 V1.4</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -14,33 +14,50 @@
 
         <div class="calculator-body">
             <div class="calc-row">
-                <div class="display-box" id="hex-display-box">
+                <div class="display-box" id="hex-display-box" style="position: relative;">
                     <div class="display-label">HEX</div>
                     <div class="display-value" id="hex-value">0</div>
                 </div>
-                <div class="right-panel sunken-panel bit-depth-panel">
-                    <label><input type="radio" name="bit-depth" value="64" checked> 64</label>
-                    <label><input type="radio" name="bit-depth" value="32"> 32</label>
-                    <label><input type="radio" name="bit-depth" value="16"> 16</label>
-                </div>
+                <select id="c-type-select" class="neumorphic-select side-control" title="資料型別與位元深度 (例如: u32, i16)">
+                    <option value="f64">f64</option>
+                    <option value="f32">f32</option>
+                    <option value="int64" selected>i64</option>
+                    <option value="uint64">u64</option>
+                    <option value="int32">i32</option>
+                    <option value="uint32">u32</option>
+                    <option value="int16">i16</option>
+                    <option value="uint16">u16</option>
+                    <option value="int8">i8</option>
+                    <option value="uint8">u8</option>
+                </select>
             </div>
 
             <div class="calc-row">
-                <div class="display-box" id="dec-display-box">
+                <div class="display-box" id="dec-display-box" style="position: relative;">
                     <div class="display-label">DEC</div>
                     <div class="display-value" id="dec-value">0</div>
+                    <span class="ovf-badge" id="dec-ovf">溢位</span>
+                    <span class="trunc-badge" id="dec-trunc">截斷</span>
                 </div>
-                <div class="right-panel sunken-panel unit-panel">
-                    <label><input type="radio" name="unit" value="rad" checked> 徑</label>
-                    <label><input type="radio" name="unit" value="deg"> 角</label>
-                </div>
+                <button id="unit-toggle-btn" class="neumorphic-select side-control" title="三角函數單位：&#10;弧度 (Radian)&#10;數學與程式預設單位&#10;例如：sin(π/2) = 1&#10;&#10;轉換公式：&#10;弧度 = 角度 × π/180&#10;角度 = 弧度 × 180/π&#10;&#10;點擊切換為角度模式">弧度<br>(rad)</button>
             </div>
 
             <div class="calc-row">
-                <div class="input-section sunken-panel">
+                <div class="input-section sunken-panel distinct-input" style="position: relative;">
+                    <div class="display-label">INPUT</div>
+                    <div class="dropdown-arrow" title="歷史紀錄">▼</div>
                     <div class="input-wrapper">
-                        <input type="text" id="expression-input" placeholder="輸入運算式" spellcheck="false">
-                        <div class="dropdown-arrow">▼</div>
+                        <input type="text" id="expression-input" placeholder="輸入運算式" spellcheck="false" autocomplete="off">
+                    </div>
+                    <!-- 歷史紀錄面板容器 -->
+                    <div id="history-panel" class="history-panel" style="display:none">
+                        <div class="history-header">
+                            <span class="history-title">歷史紀錄</span>
+                            <button id="clear-history" class="clear-btn">清除</button>
+                        </div>
+                        <div class="history-list" id="history-list">
+                            <!-- JS 動態填充 .history-item -->
+                        </div>
                     </div>
                 </div>
                 <div class="right-panel keyboard-toggle-panel">
@@ -54,8 +71,15 @@
                 </div>
             </div>
 
+            <div class="middle-tabs-row hidden" id="middle-tabs-row">
+                <div class="tab-list">
+                    <div class="tab-item active" id="tab-keyboard">鍵盤</div>
+                    <div class="tab-item" id="tab-bits">位元</div>
+                </div>
+                <div class="tab-divider"></div>
+            </div>
 
-            <div class="button-panel hidden">
+            <div class="button-panel hidden" id="button-panel">
                 <!-- Group 1: Hex & Numbers (5 cols) -->
                 <div class="button-group group-1">
                     <button class="btn hex" data-val="C">C</button>
@@ -76,24 +100,24 @@
                     <button class="btn num" data-val="2">2</button>
                     <button class="btn num" data-val="3">3</button>
 
-                    <button class="btn paren" data-val="(">(</button>
-                    <button class="btn paren" data-val=")">)</button>
+                    <button class="btn paren" data-val="smart-paren">()</button>
+                    <button class="btn op" data-val="=">=</button>
                     <button class="btn num zero" data-val="0">0</button>
                     <button class="btn num dot" data-val=".">.</button>
                 </div>
 
                 <div class="v-divider"></div>
 
-                <!-- Group 2: Operators (2 cols) -->
+                <!-- Group 2: Operators (2x4, always 8 buttons) -->
                 <div class="button-group group-2">
-                    <button class="btn op" data-val="/">/</button>
-                    <button class="btn op" data-val="%">%</button>
-                    <button class="btn op" data-val="*">*</button>
-                    <button class="btn bit" data-val="^">Xor</button>
-                    <button class="btn op" data-val="-">-</button>
-                    <button class="btn bit" data-val="|">Or</button>
-                    <button class="btn op" data-val="+">+</button>
-                    <button class="btn bit" data-val="&">And</button>
+                    <button class="btn op"       id="op0" data-val="/">/</button>
+                    <button class="btn op"       id="op1" data-val="%">%</button>
+                    <button class="btn op"       id="op2" data-val="*">*</button>
+                    <button class="btn op-blank" id="op3" disabled></button>
+                    <button class="btn op"       id="op4" data-val="-">-</button>
+                    <button class="btn op-blank" id="op5" disabled></button>
+                    <button class="btn op"       id="op6" data-val="+">+</button>
+                    <button class="btn switch-page" id="switch-op-mode" title="切換至位元模式">⇄</button>
                 </div>
 
                 <div class="v-divider"></div>
@@ -114,14 +138,17 @@
 
                 <!-- Group 4: Clear All (1 col) -->
                 <div class="button-group group-4">
-                    <button class="btn func entry-clear" data-val="entry-clear">BKS</button>
-                    <button class="btn func all-clear" data-val="clear-all">CLR</button>
+                    <button class="btn func entry-clear" data-val="entry-clear" title="退格 — 刪除游標前一個字元"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 5a2 2 0 0 0-1.344.519l-6.328 5.74a1 1 0 0 0 0 1.481l6.328 5.741A2 2 0 0 0 10 19h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z"/><path d="m12 9 6 6"/><path d="m18 9-6 6"/></svg></button>
+                    <button class="btn func all-clear" data-val="clear-all" title="清除 — 清空所有輸入內容"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></button>
                     <button class="btn num" data-val="0x">0x</button>
                     <button class="btn func settings-toggle" id="settings-toggle" title="視窗設定">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
                     </button>
                 </div>
             </div>
+
+            <!-- Bit Display Panel (Generated dynamically via JS) -->
+            <div class="bit-panel hidden" id="bit-panel"></div>
         </div>
     </div>
     <!-- Settings Modal -->
@@ -134,16 +161,23 @@
             </div>
             <div class="settings-row">
                 <label>隱藏鍵盤高度:</label>
-                <input type="number" id="collapsed-h-input" value="170">
+                <input type="number" id="collapsed-h-input" value="165" autocomplete="off">
+            </div>
+            <div class="settings-row">
+                <label>視窗寬度:</label>
+                <input type="number" id="window-w-input" value="540" autocomplete="off">
             </div>
             <div class="settings-row">
                 <label>顯示鍵盤高度:</label>
-                <input type="number" id="expanded-h-input" value="330">
+                <input type="number" id="expanded-h-input" value="600" autocomplete="off">
             </div>
             <div class="modal-actions">
                 <button id="save-settings" class="btn">儲存並套用</button>
                 <button id="reset-settings" class="btn">恢復預設</button>
                 <button id="cancel-settings" class="btn">取消</button>
+            </div>
+            <div class="settings-version" style="text-align: center; font-size: 10px; color: var(--color-hex); margin-top: 5px;">
+                麥克計算機 V1.4
             </div>
         </div>
     </div>
