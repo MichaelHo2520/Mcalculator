@@ -571,6 +571,14 @@ body.theme-dark .v-divider {
     box-shadow: var(--sunken-shadow);
 }
 
+.btn:focus-visible,
+input:focus-visible,
+select:focus-visible,
+button:focus-visible {
+    outline: 2px solid var(--display-label);
+    outline-offset: 2px;
+}
+
 .btn.num {
     color: var(--color-num);
 }
